@@ -3,11 +3,11 @@ import time
 
 # Load Haar Cascade files
 face_cascade = cv2.CascadeClassifier(
-    "/home/raspberrypi/test/haarcascade_frontalface_default.xml"
+    "haarcascade_frontalface_default.xml"
 )
 
 eye_cascade = cv2.CascadeClassifier(
-    "/home/raspberrypi/test/haarcascade_eye_tree_eyeglasses.xml"
+    "haarcascade_eye_tree_eyeglasses.xml"
 )
 
 print("Face cascade:", not face_cascade.empty())
@@ -30,7 +30,7 @@ right_missing_start = None
 # Blink detection delay
 BLINK_TIME = 0.15
 
-while True:
+while True: 
 
     ret, frame = cap.read()
 
