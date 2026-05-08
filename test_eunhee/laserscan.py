@@ -6,7 +6,7 @@ from collections import deque  # Store recent coordinates to reduce jitter
 # =========================
 # Basic Settings
 # =========================
-CAMERA_INDEX = 4  # If it doesn't work, run camera_test.py to check index
+CAMERA_INDEX = 0  # If it doesn't work, run camera_test.py to check index
 
 # Laser detection thresholds
 R_MIN = 160  # Minimum brightness for red channel
