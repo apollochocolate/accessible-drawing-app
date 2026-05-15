@@ -47,7 +47,7 @@ def find_key(x, y):
 # =========================
 # Camera Open
 # =========================
-cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_V4L2)
+cap = cv2.VideoCapture(CAMERA_INDEX)
 
 if not cap.isOpened():
     print("Cannot open camera.")
