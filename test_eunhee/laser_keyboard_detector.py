@@ -26,11 +26,13 @@ key_map = {
     "D": (230, 130, 300, 200),
 }
 
+
 def find_key(x, y):
     for key, (x1, y1, x2, y2) in key_map.items():
         if x1 <= x <= x2 and y1 <= y <= y2:
             return key
     return None
+
 
 # =========================
 # Camera Open
@@ -68,11 +70,7 @@ try:
         g_i = g.astype(np.int16)
         b_i = b.astype(np.int16)
 
-        laser_pixel = (
-            (r_i > R_MIN) &
-            (r_i > g_i + RED_DIFF) &
-            (r_i > b_i + RED_DIFF)
-        )
+        laser_pixel = (r_i > R_MIN) & (r_i > g_i + RED_DIFF) & (r_i > b_i + RED_DIFF)
 
         mask = laser_pixel.astype(np.uint8) * 255
 
@@ -80,11 +78,7 @@ try:
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         mask = cv2.medianBlur(mask, 3)
 
-        contours, _ = cv2.findContours(
-            mask,
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         best_candidate = None
         best_score = -1
@@ -129,7 +123,7 @@ try:
             laser_x = int(sum(x_history) / len(x_history))
             laser_y = int(sum(y_history) / len(y_history))
 
-            cv2.circle(display, (laser_x, laser_y), 10, (0,255,0), 2)
+            cv2.circle(display, (laser_x, laser_y), 10, (0, 255, 0), 2)
 
             # =========================
             # 키 매핑
@@ -145,8 +139,8 @@ try:
                     (laser_x, laser_y - 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     1,
-                    (0,0,255),
-                    2
+                    (0, 0, 255),
+                    2,
                 )
 
         else:
@@ -158,13 +152,21 @@ try:
         # =========================
         for key, (x1, y1, x2, y2) in key_map.items():
             cv2.rectangle(display, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            cv2.putText(display, key, (x1 + 10, y1 + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+            cv2.putText(
+                display,
+                key,
+                (x1 + 10, y1 + 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 0, 0),
+                2,
+            )
 
         cv2.imshow("Laser Keyboard", display)
         # cv2.imshow("Mask", mask)
 
         key = cv2.waitKey(1) & 0xFF
-        if key == 27 or key == ord('q'):
+        if key == 27 or key == ord("q"):
             break
 
 finally:
