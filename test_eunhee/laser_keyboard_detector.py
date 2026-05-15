@@ -156,6 +156,10 @@ try:
         # =========================
         # UI 표시
         # =========================
+        for key, (x1, y1, x2, y2) in key_map.items():
+            cv2.rectangle(display, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            cv2.putText(display, key, (x1 + 10, y1 + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+
         cv2.imshow("Laser Keyboard", display)
         # cv2.imshow("Mask", mask)
 
