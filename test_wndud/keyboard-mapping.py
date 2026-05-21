@@ -67,7 +67,7 @@ rc_x1, rc_y1, rc_x2, rc_y2 = KEY_MAP["RCtrl"]
 
 # RCtrl 바로 오른쪽부터 방향키 시작
 ARR_X = rc_x2 + 10
-fn_keys  = [("Fn",1.3),("한자",1.4),("Win",1.4),("한/영",1.4)]
+fn_keys  = [("Mode",1.3),("Fn",1.3),("한자",1.4),("Win",1.4),("한/영",1.4)]
 x = KB_X
 for name, ratio in fn_keys:
     w = int(U * ratio)
@@ -160,11 +160,11 @@ LABEL_MAP = {
     "\\":"\\",   "Space":"Space",
     "Up":"↑",        "Down":"↓",        "Left":"←",      "Right":"→",
     "PrtScr":"PrtScr","Ins":"Ins",      "Del":"Del",
-    "한자":"한자",   "한/영":"한/영",   "Win":"Win",     "Fn":"Fn",
+    "Mode": "Mode", "한자":"한자",   "한/영":"한/영",   "Win":"Win",     "Fn":"Fn",
 }
 
 SPECIAL = {"Esc","BkSp","Tab","Caps","LShift","RShift","LCtrl","RCtrl",
-           "LAlt","RAlt","Enter","Space","Fn","한자","Win","한/영",
+           "LAlt","RAlt","Enter","Space","Fn","Mode","한자","Win","한/영",
            "PrtScr","Ins","Del"}
 FKEYS   = {"F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"}
 ARROWS  = {"Up","Down","Left","Right"}
@@ -236,11 +236,15 @@ print("Area    : 최소 감지 면적     (기본   5)")
 
 while True:
     ret, frame = cap.read()
+
     if not ret:
         frame = np.zeros((WIN_H, WIN_W, 3), dtype=np.uint8)
 
-    frame = cv2.flip(frame, 1)
+    # 먼저 크기 조정
     frame = cv2.resize(frame, (WIN_W, WIN_H))
+
+    # 좌우 반전 (거울 모드)
+    #frame = cv2.flip(frame, 1)
 
     h_lo   = cv2.getTrackbarPos("H_low1",  TUNE_WIN)
     h_hi   = cv2.getTrackbarPos("H_high1", TUNE_WIN)
