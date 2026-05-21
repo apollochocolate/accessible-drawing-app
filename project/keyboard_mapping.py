@@ -4,24 +4,21 @@ from PIL import ImageFont, ImageDraw, Image
 
 WIN_W, WIN_H = 640, 480
 
-U   = 36 # 기본 키 너비 단위 (예: 'Q' 키 너비 = 1U, 'Tab' 키 너비 = 1.4U 등)
-H   = 60 # 키 높이
-GAP = 2 # 키 간격
+U   = 36
+H   = 60
+GAP = 2
 
 KB_ROWS    = 7
 KB_TOTAL_H = KB_ROWS * (H + GAP)
-KB_Y       = (WIN_H - KB_TOTAL_H) // 2 # 키보드 전체를 화면 중앙에 배치하기 위한 Y 좌표
+KB_Y       = (WIN_H - KB_TOTAL_H) // 2
 KB_X       = 8
 
 KEY_MAP = {}
 
-# 키맵에 키 추가 함수: 이름과 좌표를 계산하여 KEY_MAP에 저장
 def add_key(name, x, y, w, h=H):
     KEY_MAP[name] = (x, y, x + w, y + h)
     return x + w + GAP
 
-# 키맵 정의: 각 키의 이름과 화면 내 좌표 (x1, y1, x2, y2)를 저장
-# 각 행마다 키 이름과 너비 비율을 정의한 후, make_row 함수를 사용하여 KEY_MAP에 추가
 def make_row(keys_widths, start_x, row_y):
     x = start_x
     for name, ratio in keys_widths:
@@ -63,19 +60,19 @@ make_row([("LShift",2.1),("Z",1),("X",1),("C",1),("V",1),("B",1),
           ("N",1),("M",1),(",",1),(".",1),("/",1),("RShift",2.6)], KB_X, y4)
 make_row([("LCtrl",1.3),("LAlt",1.1),("Space",5.9),("RAlt",1.1),("RCtrl",1.3)], KB_X, y5)
 
-# ── Row 6: Mode + Fn + 한자 + Win + 한/영 + 방향키 ──
-# Mode 키를 Fn 왼쪽에 추가
+ARR_UNIT = int(U * 1.05)
+
+# RCtrl 위치 가져오기
+rc_x1, rc_y1, rc_x2, rc_y2 = KEY_MAP["RCtrl"]
+
+# RCtrl 바로 오른쪽부터 방향키 시작
+ARR_X = rc_x2 + 10
 fn_keys  = [("Mode",1.3),("Fn",1.3),("한자",1.4),("Win",1.4),("한/영",1.4)]
 x = KB_X
 for name, ratio in fn_keys:
     w = int(U * ratio)
     add_key(name, x, y6, w)
     x += w + GAP
-
-# 방향키: RCtrl 위치 기준으로 바로 오른쪽에 배치
-rc_x1, rc_y1, rc_x2, rc_y2 = KEY_MAP["RCtrl"]
-ARR_UNIT = int(U * 1.05)
-ARR_X    = rc_x2 + 10   # RCtrl 오른쪽에 붙임
 
 up_x = ARR_X + ARR_UNIT + GAP
 add_key("Up",    up_x,                     y5, ARR_UNIT, H)
@@ -88,24 +85,25 @@ add_key("Right", ARR_X + (ARR_UNIT+GAP)*2, y6, ARR_UNIT, H)
 # ═══════════════════════════════════════════════
 def load_font(size):
     candidates = [
+
         # Windows
-        "C:/Windows/Fonts/malgun.ttf",
+        "C:/Windows/Fonts/malgun.ttf",     # 맑은 고딕
         "C:/Windows/Fonts/gulim.ttc",
-        "C:/Windows/Fonts/batang.ttc",
+
         # Linux
         "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf",
+
         # Mac
         "/System/Library/Fonts/AppleSDGothicNeo.ttc",
+        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+        "/System/Library/Fonts/SFNS.ttf",
     ]
     for path in candidates:
         try:
-            font = ImageFont.truetype(path, size)
-            print(f"[폰트 로드 성공] {path}")
-            return font
+            return ImageFont.truetype(path, size)
         except:
             pass
-    print("[경고] 시스템 폰트를 찾지 못했습니다. 기본 폰트 사용 (한글 깨질 수 있음)")
     return ImageFont.load_default()
 
 FONT_SM = load_font(11)
@@ -113,6 +111,7 @@ FONT_MD = load_font(13)
 FONT_LG = load_font(15)
 
 def put_text_pil(frame, text, cx, cy, font, color=(205,205,215)):
+    """PIL로 텍스트를 그려서 OpenCV 프레임에 합성 (한국어/유니코드 지원)"""
     img_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     draw    = ImageDraw.Draw(img_pil)
     bbox    = draw.textbbox((0,0), text, font=font)
@@ -123,18 +122,14 @@ def put_text_pil(frame, text, cx, cy, font, color=(205,205,215)):
 # ═══════════════════════════════════════════════
 # 레이저 검출
 # ═══════════════════════════════════════════════
-# HSV 색상 범위, 블러 강도, 최소 면적 등을 조절하여 레이저 점을 검출하는 함수
-# 빨간색 범위는 H_low1~H_high1과 H_low2~H_high2의 두 구간으로 나누어 설정
 def detect_red_laser(frame, h_lo, h_hi, h_lo2, h_hi2, s_min, v_min, blur_k, area_min):
     k = blur_k if blur_k % 2 == 1 else blur_k + 1
     k = max(k, 1)
     blurred = cv2.GaussianBlur(frame, (k, k), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-    # 빨간색은 HSV에서 H가 0~10과 160~180 범위에 걸쳐 나타나므로, 두 범위를 모두 포함하는 마스크를 생성
-    # S와 V는 각각 s_min, v_min 이상의 값으로 설정하여 채도와 밝기가 낮은 노이즈를 제거
-    m1 = cv2.inRange(hsv, np.array([h_lo,  s_min, v_min]), np.array([h_hi,  255, 255])) # 빨간색 범위1
-    m2 = cv2.inRange(hsv, np.array([h_lo2, s_min, v_min]), np.array([h_hi2, 255, 255])) # 빨간색 범위2
-    hsv_mask = cv2.bitwise_or(m1, m2) # 두 범위를 합쳐서 마스크 생성
+    m1 = cv2.inRange(hsv, np.array([h_lo,  s_min, v_min]), np.array([h_hi,  255, 255]))
+    m2 = cv2.inRange(hsv, np.array([h_lo2, s_min, v_min]), np.array([h_hi2, 255, 255]))
+    hsv_mask = cv2.bitwise_or(m1, m2)
     v_channel = hsv[:,:,2]
     _, bright_mask = cv2.threshold(v_channel, v_min, 255, cv2.THRESH_BINARY)
     combined = cv2.bitwise_and(hsv_mask, bright_mask)
@@ -150,15 +145,14 @@ def detect_red_laser(frame, h_lo, h_hi, h_lo2, h_hi2, s_min, v_min, blur_k, area
                 return int(M["m10"]/M["m00"]), int(M["m01"]/M["m00"]), combined
     return None, None, combined
 
-# 키보드 상의 (x, y) 좌표가 어떤 키 영역에 속하는지 확인하는 함수
 def get_key_at(x, y):
     for name, (x1,y1,x2,y2) in KEY_MAP.items():
         if x1 <= x <= x2 and y1 <= y <= y2:
-            return name # 해당 좌표가 이 키 영역에 속하므로 키 이름 반환
-    return None # 어떤 키 영역에도 속하지 않음
+            return name
+    return None
 
 # ═══════════════════════════════════════════════
-# 키 라벨 / 색상 그룹 정의
+# 키 라벨 정의
 # ═══════════════════════════════════════════════
 LABEL_MAP = {
     "BkSp":"BkSp",   "LShift":"Shift",  "RShift":"Shift",
@@ -166,8 +160,7 @@ LABEL_MAP = {
     "\\":"\\",   "Space":"Space",
     "Up":"↑",        "Down":"↓",        "Left":"←",      "Right":"→",
     "PrtScr":"PrtScr","Ins":"Ins",      "Del":"Del",
-    "한자":"한자",   "한/영":"한/영",   "Win":"Win",
-    "Fn":"Fn",       "Mode":"Mode",
+    "Mode": "Mode", "한자":"한자",   "한/영":"한/영",   "Win":"Win",     "Fn":"Fn",
 }
 
 SPECIAL = {"Esc","BkSp","Tab","Caps","LShift","RShift","LCtrl","RCtrl",
@@ -176,30 +169,26 @@ SPECIAL = {"Esc","BkSp","Tab","Caps","LShift","RShift","LCtrl","RCtrl",
 FKEYS   = {"F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"}
 ARROWS  = {"Up","Down","Left","Right"}
 
-# Mode 키는 강조색으로 구분
-MODE_KEY = {"Mode"}
-
+# 길이에 따라 폰트 크기 선택
 def pick_font(label):
-    if len(label) >= 5: return FONT_SM
-    if len(label) >= 3: return FONT_MD
+    if len(label) >= 5:  return FONT_SM
+    if len(label) >= 3:  return FONT_MD
     return FONT_LG
 
-# 키보드 오버레이를 그리는 함수: 각 키 영역을 색상으로 구분하여 표시하고, 현재 레이저가 위치한 키는 강조
 def draw_keyboard_overlay(frame, hovered):
-    overlay = frame.copy()  #키 영역을 그릴 투명한 레이어 생성
+    overlay = frame.copy()
     for name, (x1,y1,x2,y2) in KEY_MAP.items():
-        if name == hovered:         bg = (60, 210, 100)
-        elif name in ARROWS:        bg = (70, 50, 90)
-        elif name in MODE_KEY:      bg = (120, 60, 40)   # Mode키: 주황빛 강조
-        elif name in SPECIAL:       bg = (55, 55, 85)
-        elif name in FKEYS:         bg = (45, 45, 68)
-        else:                       bg = (38, 38, 52)
+        if name == hovered:       bg = (60, 210, 100)
+        elif name in ARROWS:      bg = (70, 50, 90)
+        elif name in SPECIAL:     bg = (55, 55, 85)
+        elif name in FKEYS:       bg = (45, 45, 68)
+        else:                     bg = (38, 38, 52)
         cv2.rectangle(overlay, (x1,y1), (x2,y2), bg, -1)
         cv2.rectangle(overlay, (x1,y1), (x2,y2), (120,120,150), 1)
 
-    # 오버레이를 원본 프레임에 반투명하게 합성하여 키 영역이 표시되도록 함
-    cv2.addWeighted(overlay, 0.55, frame, 0.45, 0, frame)   # 키 영역이 너무 진하지 않도록 투명도 조절(0.55 값을 높이면 키보드가 더 불투명, 낮추면 더 투명해짐)
+    cv2.addWeighted(overlay, 0.55, frame, 0.45, 0, frame)
 
+    # 텍스트는 PIL로 별도 렌더링 (한국어/유니코드 지원)
     for name, (x1,y1,x2,y2) in KEY_MAP.items():
         label = LABEL_MAP.get(name, name)
         tc    = (255,255,255) if name == hovered else (205,205,215)
@@ -225,6 +214,11 @@ cv2.createTrackbar("Blur",    TUNE_WIN, 5,   21,  lambda x: None)
 cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 
 cap = cv2.VideoCapture(1)
+
+if not cap.isOpened():
+    print("카메라를 열 수 없습니다.")
+    exit()
+
 cap.set(cv2.CAP_PROP_FRAME_WIDTH,  WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
 
@@ -242,11 +236,15 @@ print("Area    : 최소 감지 면적     (기본   5)")
 
 while True:
     ret, frame = cap.read()
+
     if not ret:
         frame = np.zeros((WIN_H, WIN_W, 3), dtype=np.uint8)
 
-    frame = cv2.flip(frame, 1)
+    # 먼저 크기 조정
     frame = cv2.resize(frame, (WIN_W, WIN_H))
+
+    # 좌우 반전 (거울 모드)
+    #frame = cv2.flip(frame, 1)
 
     h_lo   = cv2.getTrackbarPos("H_low1",  TUNE_WIN)
     h_hi   = cv2.getTrackbarPos("H_high1", TUNE_WIN)
@@ -267,10 +265,12 @@ while True:
 
     draw_keyboard_overlay(frame, detected_key)
 
+    # 인식 상태 (좌하단)
     status = f"Key: {detected_key}" if detected_key else "Key: ---"
     cv2.rectangle(frame, (0, WIN_H-32), (220, WIN_H), (0,0,0), -1)
     put_text_pil(frame, status, 110, WIN_H-16, FONT_MD, (0,255,180))
 
+    # 레이저 감지 여부 (우상단)
     dot_color = (0,255,0) if cx is not None else (0,0,255)
     dot_label = "LASER ON" if cx is not None else "NO LASER"
     cv2.circle(frame, (WIN_W-90, 18), 8, dot_color, -1)
@@ -296,3 +296,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
