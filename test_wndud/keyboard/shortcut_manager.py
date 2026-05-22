@@ -1,45 +1,127 @@
 # shortcut_manager.py
 
-modifier_state = {
-    "Ctrl": False,
-    "Alt": False,
-    "Shift": False
+# 현재 유지 중인 modifier
+active_modifier = None
+current_hover_key = None
+
+# modifier 키 목록
+MODIFIER_KEYS = {
+    "LCtrl",
+    "RCtrl",
+    "LShift",
+    "RShift",
+    "LAlt",
+    "RAlt"
+}
+CTRL_ALLOWED_KEYS = {
+    "C",
+    "V",
+    "A",
+    "Z",
+    "Y",
+    "F",
+    "Shift"
 }
 
+SHIFT_ALLOWED_KEYS = {
+    "A",
+    "B",
+    "C"
+}
+
+ALT_ALLOWED_KEYS = {
+    "Tab",
+    "F4"
+}
+
+# 중복 입력 방지
 last_key = None
 
-def process_key(detected_key):
-    global last_key
 
-    if detected_key == last_key:
+def normalize_key(key):
+
+    if key in ["LCtrl", "RCtrl"]:
+        return "Ctrl"
+
+    if key in ["LShift", "RShift"]:
+        return "Shift"
+
+    if key in ["LAlt", "RAlt"]:
+        return "Alt"
+
+    return key
+
+
+def process_key(detected_key):
+
+    global active_modifier
+    global last_key
+    global current_hover_key
+
+    if detected_key is None:
         return
 
-    if detected_key in ["LCtrl", "RCtrl"]:
-        modifier_state["Ctrl"] = not modifier_state["Ctrl"]
-        print(f"Ctrl {'ON' if modifier_state['Ctrl'] else 'OFF'}")
+    # =========================
+    # 같은 키 계속 누르고 있으면 무시
+    # =========================
+    if detected_key == current_hover_key:
+        return
 
-    elif detected_key in ["LAlt", "RAlt"]:
-        modifier_state["Alt"] = not modifier_state["Alt"]
-        print(f"Alt {'ON' if modifier_state['Alt'] else 'OFF'}")
+    current_hover_key = detected_key
 
-    elif detected_key in ["LShift", "RShift"]:
-        modifier_state["Shift"] = not modifier_state["Shift"]
-        print(f"Shift {'ON' if modifier_state['Shift'] else 'OFF'}")
+    # =========================
+    # modifier 키면 저장만
+    # =========================
+    if detected_key in MODIFIER_KEYS:
 
+        active_modifier = normalize_key(detected_key)
+
+        print(f"[MOD SET] {active_modifier}")
+
+        return
+
+    # =========================
+    # modifier 조합 실행
+    # =========================
+    if active_modifier is not None:
+
+        allowed_keys = get_allowed_keys(active_modifier)
+
+    # 허용 키인 경우
+    if detected_key in allowed_keys:
+
+        print(f"[SHORTCUT] {active_modifier} + {detected_key}")
+
+        # Ctrl 유지
+        return
+
+    # 허용 안된 키면 modifier 해제
     else:
-        combo = []
 
-        if modifier_state["Ctrl"]:
-            combo.append("Ctrl")
+        print(f"[MOD RELEASE] {active_modifier}")
 
-        if modifier_state["Alt"]:
-            combo.append("Alt")
+        active_modifier = None
 
-        if modifier_state["Shift"]:
-            combo.append("Shift")
+        # 일반 키 처리
+        print(f"[KEY] {detected_key}")
 
-        combo.append(detected_key)
+        return
 
-        print(" + ".join(combo))
+def reset_key_state():
 
-    last_key = detected_key
+    global current_hover_key
+
+    current_hover_key = None
+
+def get_allowed_keys(modifier):
+
+    if modifier == "Ctrl":
+        return CTRL_ALLOWED_KEYS
+
+    if modifier == "Shift":
+        return SHIFT_ALLOWED_KEYS
+
+    if modifier == "Alt":
+        return ALT_ALLOWED_KEYS
+
+    return set()

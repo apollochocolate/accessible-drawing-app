@@ -9,7 +9,7 @@ WIN_W, WIN_H = 640, 480
 KB_ROWS    = 7
 KB_TOTAL_H = KB_ROWS * (H + GAP)
 KB_Y       = (WIN_H - KB_TOTAL_H) // 2
-KB_X       = 8
+KB_X       = 40
 
 KEY_MAP = {}
 
@@ -34,7 +34,7 @@ y6 = KB_Y + (H + GAP) * 6
 
 # 최상단열
 x = KB_X
-x = add_key("Esc", x+1, y0, int(U*0.9))
+x = add_key("Esc", x+2, y0, int(U*0.9))
 
 for fname in ["F1","F2","F3","F4"]:
     x = add_key(fname, x+1, y0, int(U*0.88))
@@ -46,7 +46,7 @@ for fname in ["F9","F10","F11","F12"]:
     x = add_key(fname, x+1, y0, int(U*0.88))
 
 for fname in ["PrtScr","Ins","Del"]:
-    x = add_key(fname, x+2, y0, int(U*0.95))
+    x = add_key(fname, x+1, y0, int(U*0.95))
 
 # 메인 키보드
 make_row([("`",1),("1",1),("2",1),("3",1),("4",1),("5",1),

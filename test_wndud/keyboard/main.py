@@ -6,6 +6,10 @@ import numpy as np
 from keyboard_layout import KEY_MAP
 from laser_detect import detect_red_laser
 from renderer import draw_keyboard_overlay
+from shortcut_manager import (
+    process_key,
+    reset_key_state
+)
 
 WIN_W = 640
 WIN_H = 480
@@ -48,7 +52,7 @@ cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 # =========================
 # 카메라
 # =========================
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 
 if not cap.isOpened():
     print("카메라를 열 수 없습니다.")
@@ -56,6 +60,7 @@ if not cap.isOpened():
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
 
 show_mask = False
@@ -122,6 +127,12 @@ while True:
 
         detected_key = get_key_at(cx, cy)
 
+        if detected_key is not None:
+            process_key(detected_key)
+        if cx is None:
+            reset_key_state()  
+
+
         cv2.circle(
             frame,
             (cx, cy),
@@ -150,8 +161,8 @@ while True:
     # =========================
     # 상태 출력
     # =========================
-    if detected_key:
-        print(f"인식된 키: {detected_key}")
+    #if detected_key:
+    #    print(f"인식된 키: {detected_key}")
 
     # =========================
     # 화면 출력
