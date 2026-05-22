@@ -134,12 +134,12 @@ def process_key(detected_key):
             return
 
         # 허용 안된 키면 무시
-        else:
+        #else:
 
-            print(f"[IGNORED] {detected_key}")
+        #    print(f"[IGNORED] {detected_key}")
 
             # modifier 유지
-            return
+        #    return
 
     # =========================
     # 일반 키 처리

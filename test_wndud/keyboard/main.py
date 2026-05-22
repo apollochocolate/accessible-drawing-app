@@ -62,6 +62,9 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
+for _ in range(10):
+    cap.read()
+
 
 show_mask = False
 
@@ -127,10 +130,11 @@ while True:
 
         detected_key = get_key_at(cx, cy)
 
-        if detected_key is not None:
-            process_key(detected_key)
-        if cx is None:
-            reset_key_state()  
+    if detected_key is not None:
+        process_key(detected_key)
+
+    else:
+        reset_key_state()
 
 
         cv2.circle(
