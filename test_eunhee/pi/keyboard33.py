@@ -341,7 +341,7 @@ cv2.createTrackbar("V_min", TUNE_WIN, 100, 255, lambda x: None)
 cv2.createTrackbar("Blur", TUNE_WIN, 5, 21, lambda x: None)
 cv2.createTrackbar("Area", TUNE_WIN, 5, 200, lambda x: None)
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
     print("카메라를 열 수 없습니다.")
