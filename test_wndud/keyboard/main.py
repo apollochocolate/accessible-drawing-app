@@ -19,13 +19,15 @@ WIN_H = 480
 # 키 판별
 # =========================
 def get_key_at(x, y):
-
-    for name, (x1,y1,x2,y2) in KEY_MAP.items():
-
+    for name, (x1, y1, x2, y2) in KEY_MAP.items():
         if x1 <= x <= x2 and y1 <= y <= y2:
             return name
-
     return None
+
+
+# =========================
+# 카메라 자동 탐색 (맥북 외부캠 대응)
+# =========================
 
 
 # =========================
@@ -54,14 +56,9 @@ cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 # =========================
 cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 
-if not cap.isOpened():
-    print("카메라를 열 수 없습니다.")
-    exit()
-
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
-cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
+# 버퍼 비우기
 for _ in range(10):
     cap.read()
 
@@ -81,7 +78,7 @@ while True:
     ret, frame = cap.read()
 
     # 카메라 실패 시 검정 화면 생성
-    if not ret:
+    if not ret or frame is None or frame.size == 0:
         frame = np.zeros((WIN_H, WIN_W, 3), dtype=np.uint8)
 
     # 크기 조정
@@ -99,11 +96,7 @@ while True:
     s_min  = cv2.getTrackbarPos("S_min",   TUNE_WIN)
     v_min  = cv2.getTrackbarPos("V_min",   TUNE_WIN)
 
-    blur_k = max(
-        cv2.getTrackbarPos("Blur", TUNE_WIN),
-        1
-    )
-
+    blur_k = max(cv2.getTrackbarPos("Blur", TUNE_WIN), 1)
     area_m = cv2.getTrackbarPos("Area", TUNE_WIN)
 
     # =========================
@@ -124,34 +117,25 @@ while True:
     detected_key = None
 
     # =========================
-    # 레이저 위치 표시
+    # 레이저 위치 표시  ← 버그 수정: cx 체크 후 circle 그리기
     # =========================
     if cx is not None:
 
         detected_key = get_key_at(cx, cy)
 
+        # 레이저 포인트 시각화 (cx가 있을 때만)
+        cv2.circle(frame, (cx, cy), 8,  (0, 0, 255), -1)
+        cv2.circle(frame, (cx, cy), 12, (255, 255, 255), 2)
+
+    # =========================
+    # 키 처리
+    # =========================
     if detected_key is not None:
         process_key(detected_key)
 
     else:
         reset_key_state()
 
-
-        cv2.circle(
-            frame,
-            (cx, cy),
-            8,
-            (0,0,255),
-            -1
-        )
-
-        cv2.circle(
-            frame,
-            (cx, cy),
-            12,
-            (255,255,255),
-            2
-        )
 
     # =========================
     # ★ 항상 키보드 출력
@@ -163,24 +147,12 @@ while True:
     )
 
     # =========================
-    # 상태 출력
-    # =========================
-    #if detected_key:
-    #    print(f"인식된 키: {detected_key}")
-
-    # =========================
     # 화면 출력
     # =========================
-    cv2.imshow(
-        "Laser Keyboard",
-        frame
-    )
+    cv2.imshow("Laser Keyboard", frame)
 
     if show_mask:
-        cv2.imshow(
-            "Mask Debug",
-            mask
-        )
+        cv2.imshow("Mask Debug", mask)
 
     # =========================
     # 키 입력
@@ -196,10 +168,7 @@ while True:
 
         if not show_mask:
             cv2.destroyWindow("Mask Debug")
-
-        print(
-            f"마스크 창: {'ON' if show_mask else 'OFF'}"
-        )
+        print(f"마스크 창: {'ON' if show_mask else 'OFF'}")
 
 
 # =========================
