@@ -140,61 +140,68 @@ def pick_font(label):
     return FONT_LG
 
 
-def draw_keyboard_overlay(frame, KEY_MAP, hovered=None, laser_only=False):
+def draw_keyboard_overlay(frame, KEY_MAP, hovered=None):
 
-    if laser_only:
+    # if laser_only:
 
-        name = "Mode"
+    #     name = "Mode"
 
-        x1, y1, x2, y2 = KEY_MAP[name]
+    #     x1, y1, x2, y2 = KEY_MAP[name]
 
        
-        if hovered == "Mode":
-            bg = (60, 210, 100)
+    #     if hovered == "Mode":
+    #         bg = (60, 210, 100)
 
-        else:
-            bg = (55, 55, 85)
+    #     else:
+    #         bg = (55, 55, 85)
 
  
-        cv2.rectangle(
-            frame,
-            (x1, y1),
-            (x2, y2),
-            bg,
-            -1
-        )
+    #     cv2.rectangle(
+    #         frame,
+    #         (x1, y1),
+    #         (x2, y2),
+    #         bg,
+    #         -1
+    #     )
 
-        cv2.rectangle(
-            frame,
-            (x1, y1),
-            (x2, y2),
-            (180,180,220),
-            2
-        )
+    #     cv2.rectangle(
+    #         frame,
+    #         (x1, y1),
+    #         (x2, y2),
+    #         (180,180,220),
+    #         2
+    #     )
 
    
-        label = LABEL_MAP.get(name, name)
+    #     label = LABEL_MAP.get(name, name)
 
-        font = pick_font(label)
+    #     font = pick_font(label)
 
-        cx = (x1 + x2) // 2
-        cy = (y1 + y2) // 2
+    #     cx = (x1 + x2) // 2
+    #     cy = (y1 + y2) // 2
 
-        put_text_pil(
-            frame,
-            label,
-            cx,
-            cy,
-            font,
-            (255,255,255)
-        )
+    #     put_text_pil(
+    #         frame,
+    #         label,
+    #         cx,
+    #         cy,
+    #         font,
+    #         (255,255,255)
+    #     )
 
-        return
+    #     return
 
     
     overlay = frame.copy()
 
     for name, (x1,y1,x2,y2) in KEY_MAP.items():
+        cv2.line(
+            frame,
+            (35, 250),
+            (605, 250),
+            (120,120,140),
+            2
+        )
 
         if name == hovered:
             bg = (60, 210, 100)

@@ -2,10 +2,10 @@
 
 import cv2
 import numpy as np
-from mode_manager import (
-    process_mode_key,
-    is_laser_only_mode
-)
+# from mode_manager import (
+#     process_mode_key,
+#     is_laser_only_mode
+# )
 from keyboard_layout import KEY_MAP
 from laser_detect import detect_red_laser
 from renderer import draw_keyboard_overlay
@@ -97,7 +97,7 @@ while True:
     )
 
     detected_key = None
-    current_mode = is_laser_only_mode()
+    #current_mode = is_laser_only_mode()
 
     
     if cx is not None:
@@ -126,35 +126,31 @@ while True:
             if detected_key not in allowed_all:
                 detected_key = None
 
-        process_mode_key(detected_key)
+        # process_mode_key(detected_key)
 
-        current_mode = is_laser_only_mode()
+        # current_mode = is_laser_only_mode()
 
     
     cv2.circle(frame, (cx, cy), 8,  (0, 0, 255), -1)
     cv2.circle(frame, (cx, cy), 12, (255, 255, 255), 2)
 
-    if current_mode:
+    text = f"({cx},{cy})"
 
-        text = f"({cx},{cy})"
+    cv2.putText(
+        frame,
+        text,
+        (10, 20),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5,
+        (0,255,0),
+        2
+    )
 
-        cv2.putText(
-            frame,
-            text,
-            (20, 40),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (0,255,0),
-            2
-        )
+    if detected_key is not None:
+        process_key(detected_key)
 
-    if not current_mode:
-
-        if detected_key is not None:
-            process_key(detected_key)
-
-        else:
-            reset_key_state()
+    else:
+        reset_key_state()
 
     
 
@@ -162,7 +158,6 @@ while True:
         frame,
         KEY_MAP,
         detected_key,
-        current_mode
     ) 
 
     cv2.imshow("Laser Keyboard", frame)
