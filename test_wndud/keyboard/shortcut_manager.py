@@ -21,12 +21,10 @@ MODIFIER_TIMEOUT = 5
 # modifier 키 목록
 # =========================
 MODIFIER_KEYS = {
-    "LCtrl",
-    "RCtrl",
+    "Ctrl",
     "LShift",
     "RShift",
-    "LAlt",
-    "RAlt",
+    "Alt",
     "Win"
 }
 
@@ -39,25 +37,26 @@ CTRL_ALLOWED_KEYS = {
     "V",
     "A",
     "Z",
-    "Y",
-    "F"
+    "F",
+    "S"
 }
 
 SHIFT_ALLOWED_KEYS = {
-    "A",
-    "B",
-    "C"
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT"
 }
 
 ALT_ALLOWED_KEYS = {
-    "Tab",
-    "F4"
+    "Tab"
 }
 
 WIN_ALLOWED_KEYS = {
-    "D",
-    "E",
-    "R"
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT"
 }
 
 
@@ -66,13 +65,13 @@ WIN_ALLOWED_KEYS = {
 # =========================
 def normalize_key(key):
 
-    if key in ["LCtrl", "RCtrl"]:
+    if key in ["Ctrl"]:
         return "Ctrl"
 
     if key in ["LShift", "RShift"]:
         return "Shift"
 
-    if key in ["LAlt", "RAlt"]:
+    if key in ["Alt"]:
         return "Alt"
 
     return key

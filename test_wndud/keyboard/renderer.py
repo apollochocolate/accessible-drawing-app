@@ -62,11 +62,9 @@ LABEL_MAP = {
     "LShift":"Shift",
     "RShift":"Shift",
 
-    "LCtrl":"Ctrl",
-    "RCtrl":"Ctrl",
+    "Ctrl":"Ctrl",
 
-    "LAlt":"Alt",
-    "RAlt":"Alt",
+    "Alt":"Alt",
 
     "\\":"\\",
 
@@ -98,20 +96,19 @@ SPECIAL = {
     "LShift",
     "RShift",
 
-    "LCtrl",
-    "RCtrl",
+    "Ctrl",
 
-    "LAlt",
-    "RAlt",
+    "Alt",
+
 
     "Enter",
     "Space",
 
     "Fn",
     "Mode",
-    "�쒖옄",
+    "한자",
     "Win",
-    "��/��",
+    "한/영",
 
     "PrtScr",
     "Ins",

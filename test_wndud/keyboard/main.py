@@ -112,9 +112,9 @@ while True:
 
             
             modifier_keys = {
-                "Ctrl": ["LCtrl", "RCtrl"],
+                "Ctrl": ["Ctrl"],
                 "Shift": ["LShift", "RShift"],
-                "Alt": ["LAlt", "RAlt"],
+                "Alt": ["Alt"],
                 "Win": ["Win"]
             }
 
