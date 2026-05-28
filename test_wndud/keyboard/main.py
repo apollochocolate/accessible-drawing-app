@@ -45,7 +45,7 @@ cv2.createTrackbar("Blur",    TUNE_WIN, 5,   21,  lambda x: None)
 cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
@@ -56,9 +56,9 @@ for _ in range(10):
 
 show_mask = False
 
-print("�ㅽ뻾 以�...")
-print("q : 醫낅즺")
-print("m : 留덉뒪�� ON/OFF")
+print("실행 중...")
+print("q : 종료")
+print("m : 마스크 ON/OFF")
 
 
 while True:
@@ -112,9 +112,9 @@ while True:
 
             
             modifier_keys = {
-                "Ctrl": ["LCtrl", "RCtrl"],
+                "Ctrl": ["Ctrl"],
                 "Shift": ["LShift", "RShift"],
-                "Alt": ["LAlt", "RAlt"],
+                "Alt": ["Alt"],
                 "Win": ["Win"]
             }
 
@@ -182,7 +182,7 @@ while True:
 
         if not show_mask:
             cv2.destroyWindow("Mask Debug")
-        print(f"留덉뒪�� 李�: {'ON' if show_mask else 'OFF'}")
+        print(f"마스크 창: {'ON' if show_mask else 'OFF'}")
 
 
 cap.release()

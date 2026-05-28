@@ -1,10 +1,8 @@
+#renderer.py
 import cv2
 import numpy as np
 from PIL import ImageFont, ImageDraw, Image
 
-# =========================
-# 폰트 로드
-# =========================
 def load_font(size):
     candidates = [
 
@@ -14,7 +12,7 @@ def load_font(size):
 
         # Linux
         "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-        "/usr/share/fonts/truetㄴype/nanum/NanumBarunGothic.ttf",
+        "/usr/share/fonts/truet�큮pe/nanum/NanumBarunGothic.ttf",
 
         # Mac
         "/System/Library/Fonts/AppleSDGothicNeo.ttc",
@@ -36,9 +34,6 @@ FONT_MD = load_font(13)
 FONT_LG = load_font(15)
 
 
-# =========================
-# 텍스트 출력
-# =========================
 def put_text_pil(frame, text, cx, cy, font, color=(205,205,215)):
 
     img_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
@@ -59,9 +54,7 @@ def put_text_pil(frame, text, cx, cy, font, color=(205,205,215)):
     frame[:] = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
 
-# =========================
-# 키 라벨
-# =========================
+
 LABEL_MAP = {
 
     "BkSp":"BkSp",
@@ -69,11 +62,9 @@ LABEL_MAP = {
     "LShift":"Shift",
     "RShift":"Shift",
 
-    "LCtrl":"Ctrl",
-    "RCtrl":"Ctrl",
+    "Ctrl":"Ctrl",
 
-    "LAlt":"Alt",
-    "RAlt":"Alt",
+    "Alt":"Alt",
 
     "\\":"\\",
 
@@ -105,11 +96,10 @@ SPECIAL = {
     "LShift",
     "RShift",
 
-    "LCtrl",
-    "RCtrl",
+    "Ctrl",
 
-    "LAlt",
-    "RAlt",
+    "Alt",
+
 
     "Enter",
     "Space",
@@ -139,9 +129,6 @@ ARROWS = {
 }
 
 
-# =========================
-# 폰트 크기 선택
-# =========================
 def pick_font(label):
 
     if len(label) >= 5:
@@ -153,32 +140,74 @@ def pick_font(label):
     return FONT_LG
 
 
-# =========================
-# 키보드 렌더링
-# =========================
-def draw_keyboard_overlay(frame, KEY_MAP, hovered=None):
+def draw_keyboard_overlay(frame, KEY_MAP, hovered=None, laser_only=False):
 
+    if laser_only:
+
+        name = "Mode"
+
+        x1, y1, x2, y2 = KEY_MAP[name]
+
+       
+        if hovered == "Mode":
+            bg = (60, 210, 100)
+
+        else:
+            bg = (55, 55, 85)
+
+ 
+        cv2.rectangle(
+            frame,
+            (x1, y1),
+            (x2, y2),
+            bg,
+            -1
+        )
+
+        cv2.rectangle(
+            frame,
+            (x1, y1),
+            (x2, y2),
+            (180,180,220),
+            2
+        )
+
+   
+        label = LABEL_MAP.get(name, name)
+
+        font = pick_font(label)
+
+        cx = (x1 + x2) // 2
+        cy = (y1 + y2) // 2
+
+        put_text_pil(
+            frame,
+            label,
+            cx,
+            cy,
+            font,
+            (255,255,255)
+        )
+
+        return
+
+    
     overlay = frame.copy()
 
     for name, (x1,y1,x2,y2) in KEY_MAP.items():
 
-        # hover
         if name == hovered:
             bg = (60, 210, 100)
 
-        # 방향키
         elif name in ARROWS:
             bg = (70, 50, 90)
 
-        # 특수키
         elif name in SPECIAL:
             bg = (55, 55, 85)
 
-        # F키
         elif name in FKEYS:
             bg = (45, 45, 68)
 
-        # 일반키
         else:
             bg = (38, 38, 52)
 
@@ -207,9 +236,7 @@ def draw_keyboard_overlay(frame, KEY_MAP, hovered=None):
         frame
     )
 
-    # =========================
-    # 키 텍스트 출력
-    # =========================
+    
     for name, (x1,y1,x2,y2) in KEY_MAP.items():
 
         label = LABEL_MAP.get(name, name)

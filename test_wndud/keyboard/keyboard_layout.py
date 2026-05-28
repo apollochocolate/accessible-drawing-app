@@ -32,7 +32,6 @@ y4 = KB_Y + (H + GAP) * 4
 y5 = KB_Y + (H + GAP) * 5
 y6 = KB_Y + (H + GAP) * 6
 
-# 理쒖긽�⑥뿴
 x = KB_X
 x = add_key("Esc", x+2, y0, int(U*0.9))
 
@@ -48,7 +47,6 @@ for fname in ["F9","F10","F11","F12"]:
 for fname in ["PrtScr","Ins","Del"]:
     x = add_key(fname, x+1, y0, int(U*0.95))
 
-# 硫붿씤 �ㅻ낫��
 make_row([("`",1),("1",1),("2",1),("3",1),("4",1),("5",1),
           ("6",1),("7",1),("8",1),("9",1),("0",1),
           ("-",1),("=",1),("BkSp",1.9)], KB_X, y1)
@@ -65,16 +63,16 @@ make_row([("LShift",2.1),("Z",1),("X",1),("C",1),("V",1),
           ("B",1),("N",1),("M",1),(",",1),(".",1),
           ("/",1),("RShift",2.6)], KB_X, y4)
 
-make_row([("LCtrl",1.3),("LAlt",1.1),("Space",5.9),
-          ("RAlt",1.1),("RCtrl",1.3)], KB_X, y5)
+make_row([("Ctrl",3.1),("Space",6.3),
+          ("Alt",3.1)], KB_X, y5)
 
-# 理쒗븯�⑥뿴 
+
 bottom_keys = [
-    ("Mode", 1.6),
+    ("Mode", 3.0),
     ("Fn",   1.3),
-    ("�쒖옄", 1.4),
+    ("한자 ", 1.4),
     ("Win",  1.4),
-    ("��/��",1.4),
+    ("한/영",1.4),
 ]
 
 x = KB_X
@@ -84,12 +82,12 @@ for name, ratio in bottom_keys:
     add_key(name, x, y6, w)
     x += w + GAP
 
-# 諛⑺뼢��
+
 ARR_UNIT = int(U * 1.05)
 
-rc_x1, rc_y1, rc_x2, rc_y2 = KEY_MAP["RCtrl"]
+rc_x1, rc_y1, rc_x2, rc_y2 = KEY_MAP["Ctrl"]
 
-ARR_X = rc_x2 + 2
+ARR_X = rc_x2 + 330
 
 up_x = ARR_X + ARR_UNIT + GAP
 
