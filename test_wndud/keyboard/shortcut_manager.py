@@ -42,10 +42,10 @@ CTRL_ALLOWED_KEYS = {
 }
 
 SHIFT_ALLOWED_KEYS = {
-    "UP",
-    "DOWN",
-    "LEFT",
-    "RIGHT"
+    "Up",
+    "Down",
+    "Left",
+    "Right"
 }
 
 ALT_ALLOWED_KEYS = {
@@ -53,10 +53,10 @@ ALT_ALLOWED_KEYS = {
 }
 
 WIN_ALLOWED_KEYS = {
-    "UP",
-    "DOWN",
-    "LEFT",
-    "RIGHT"
+    "Up",
+    "Down",
+    "Left",
+    "Right"
 }
 
 
