@@ -10,13 +10,6 @@ from keyboard_layout import KEY_MAP
 from laser_detect import detect_red_laser
 from renderer import draw_keyboard_overlay
 from face_input import detect_left_click
-from shortcut_manager import click_current_key
-from face_input import detect_left_click
-from shortcut_manager import (
-    get_active_modifier,
-    get_allowed_keys
-)
-
 from input_controller import InputController
 
 WIN_W = 640
@@ -107,52 +100,10 @@ while True:
     if cx is not None:
 
         detected_key = get_key_at(cx, cy)
-       
-        active_modifier = get_active_modifier()
 
-        if active_modifier is not None:
-
-            allowed_keys = get_allowed_keys(active_modifier)
-
-            
-            modifier_keys = {
-                "Ctrl": ["Ctrl"],
-                "Shift": ["LShift", "RShift"],
-                "Alt": ["Alt"],
-                "Win": ["Win"]
-            }
-
-            allowed_all = (
-                allowed_keys |
-                set(modifier_keys.get(active_modifier, []))
-            )
-
-            if detected_key not in allowed_all:
-                detected_key = None
-
-        # process_mode_key(detected_key)
-
-        # current_mode = is_laser_only_mode()
-
-    
-    cv2.circle(frame, (cx, cy), 8,  (0, 0, 255), -1)
-    cv2.circle(frame, (cx, cy), 12, (255, 255, 255), 2)
-
-    text = f"({cx},{cy})"
-
-    cv2.putText(
-        frame,
-        text,
-        (10, 20),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        (0,255,0),
-        2
-    )
+        
 
     controller.update_hover(detected_key)
-
-    
 
     draw_keyboard_overlay(
         frame,
@@ -160,10 +111,7 @@ while True:
         detected_key,
     ) 
     
-    if detect_left_click():
-
-        click_current_key()
-
+    
     cv2.imshow("Laser Keyboard", frame)
 
     if show_mask:
@@ -171,6 +119,9 @@ while True:
 
     
     key = cv2.waitKey(1) & 0xFF
+
+    if detect_left_click(key):
+        controller.left_click()
 
     if key == ord("q"):
         break

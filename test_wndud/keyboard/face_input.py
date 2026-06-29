@@ -1,15 +1,9 @@
 # face_input.py
 import cv2
 
-def detect_left_click():
+def detect_left_click(key):
 
-    key = cv2.waitKey(1) & 0xFF
-
-    if key == ord(" "):
-        return True
-
-    return False
-
+    return key == ord(" ")
 
 def detect_right_click():
 

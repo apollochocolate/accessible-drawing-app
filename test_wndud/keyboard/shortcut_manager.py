@@ -181,10 +181,13 @@ def process_click(detected_key):
     # -----------------------------
     if detected_key in MODIFIER_KEYS:
 
-        active_modifier = normalize_key(detected_key)
-        modifier_start_time = time.time()
+        new_modifier = normalize_key(detected_key)
 
-        print(f"[MOD SET] {active_modifier}")
+        if active_modifier != new_modifier:
+            print(f"[MOD SET] {new_modifier}")
+
+        active_modifier = new_modifier
+        modifier_start_time = time.time()
 
         return
 
@@ -204,7 +207,7 @@ def process_click(detected_key):
             clear_modifier()
 
         else:
-            print(f"[IGNORED] {detected_key}")
+            print(f"[WAIT] {active_modifier} 유지")
 
         return
 
@@ -214,6 +217,9 @@ def process_click(detected_key):
     print(f"[KEY] {detected_key}")
 
     press_key(detected_key)
+
+    global hover_key
+    hover_key = None
 
 
 # ======================================================

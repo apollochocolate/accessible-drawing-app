@@ -3,6 +3,9 @@ from pynput.keyboard import Controller, Key
 keyboard = Controller()
 
 
+# ==========================
+# 특수키
+# ==========================
 SPECIAL = {
     "Space": Key.space,
     "Enter": Key.enter,
@@ -16,36 +19,54 @@ SPECIAL = {
 }
 
 
+# ==========================
+# Modifier
+# ==========================
+MODIFIER = {
+    "Ctrl": Key.ctrl,
+    "Shift": Key.shift,
+    "Alt": Key.alt,
+    "Win": Key.cmd
+}
+
+
+# ==========================
+# 일반 키 입력
+# ==========================
 def press_key(key):
 
     if key is None:
         return
 
+    # 알파벳
     if len(key) == 1:
-        keyboard.type(key.lower())
+        keyboard.press(key.lower())
+        keyboard.release(key.lower())
         return
 
+    # 특수키
     if key in SPECIAL:
         keyboard.press(SPECIAL[key])
         keyboard.release(SPECIAL[key])
 
 
+# ==========================
+# 단축키 입력
+# ==========================
 def press_shortcut(modifier, key):
 
-    MOD = {
-        "Ctrl": Key.ctrl,
-        "Shift": Key.shift,
-        "Alt": Key.alt,
-        "Win": Key.cmd
-    }
+    if modifier not in MODIFIER:
+        return
 
-    keyboard.press(MOD[modifier])
+    keyboard.press(MODIFIER[modifier])
 
-    if key in SPECIAL:
-        keyboard.press(SPECIAL[key])
-        keyboard.release(SPECIAL[key])
-    else:
+    if len(key) == 1:
         keyboard.press(key.lower())
         keyboard.release(key.lower())
 
-    keyboard.release(MOD[modifier])
+    elif key in SPECIAL:
+        keyboard.press(SPECIAL[key])
+        keyboard.release(SPECIAL[key])
+
+    keyboard.release(MODIFIER[modifier])
+    
