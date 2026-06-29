@@ -1,5 +1,5 @@
 # shortcut_manager.py
-
+from keyboard_input import input_key, input_shortcut
 import time
 
 # =========================
