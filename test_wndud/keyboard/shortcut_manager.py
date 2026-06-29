@@ -208,6 +208,8 @@ def process_key(detected_key):
                 f"{active_modifier} + {detected_key}"
             )
 
+            input_shortcut(active_modifier, detected_key)
+
             clear_modifier()
 
             return
@@ -223,6 +225,8 @@ def process_key(detected_key):
     # =========================
     print(f"[KEY] {detected_key}")
 
+    input_key(detected_key)
+
 
 # =========================
 # 레이저 뗐을 때
@@ -232,3 +236,4 @@ def reset_key_state():
     global current_hover_key
 
     current_hover_key = None
+
