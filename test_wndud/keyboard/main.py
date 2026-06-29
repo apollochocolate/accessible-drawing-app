@@ -11,12 +11,13 @@ from laser_detect import detect_red_laser
 from renderer import draw_keyboard_overlay
 from face_input import detect_left_click
 from shortcut_manager import click_current_key
+from face_input import detect_left_click
 from shortcut_manager import (
-    process_key,
-    reset_key_state,
     get_active_modifier,
     get_allowed_keys
 )
+
+from input_controller import InputController
 
 WIN_W = 640
 WIN_H = 480
@@ -48,6 +49,7 @@ cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 
 
 cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+controller = InputController()
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
@@ -148,11 +150,7 @@ while True:
         2
     )
 
-    if detected_key is not None:
-        process_key(detected_key)
-
-    else:
-        reset_key_state()
+    controller.update_hover(detected_key)
 
     
 
@@ -161,6 +159,10 @@ while True:
         KEY_MAP,
         detected_key,
     ) 
+    
+    if detect_left_click():
+
+        click_current_key()
 
     cv2.imshow("Laser Keyboard", frame)
 

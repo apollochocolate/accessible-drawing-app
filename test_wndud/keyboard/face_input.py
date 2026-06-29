@@ -1,12 +1,12 @@
 # face_input.py
+import cv2
 
 def detect_left_click():
 
-    """
-    얼굴인식에서
-    좌클릭이 발생하면 True
-    아니면 False
-    """
+    key = cv2.waitKey(1) & 0xFF
+
+    if key == ord(" "):
+        return True
 
     return False
 
