@@ -9,6 +9,8 @@ import numpy as np
 from keyboard_layout import KEY_MAP
 from laser_detect import detect_red_laser
 from renderer import draw_keyboard_overlay
+from face_input import detect_left_click
+from shortcut_manager import click_current_key
 from shortcut_manager import (
     process_key,
     reset_key_state,

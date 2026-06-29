@@ -1,68 +1,51 @@
-# keyboard_input.py
-
 from pynput.keyboard import Controller, Key
 
 keyboard = Controller()
 
 
-def input_key(key):
+SPECIAL = {
+    "Space": Key.space,
+    "Enter": Key.enter,
+    "Backspace": Key.backspace,
+    "Tab": Key.tab,
+    "Esc": Key.esc,
+    "Up": Key.up,
+    "Down": Key.down,
+    "Left": Key.left,
+    "Right": Key.right
+}
 
-    # -----------------------
-    # 문자
-    # -----------------------
+
+def press_key(key):
+
+    if key is None:
+        return
+
     if len(key) == 1:
         keyboard.type(key.lower())
         return
 
-    # -----------------------
-    # 특수키
-    # -----------------------
-    special = {
-        "Space": Key.space,
-        "Enter": Key.enter,
-        "Backspace": Key.backspace,
-        "Tab": Key.tab,
-        "Esc": Key.esc,
-        "Up": Key.up,
-        "Down": Key.down,
-        "Left": Key.left,
-        "Right": Key.right
-    }
-
-    if key in special:
-        keyboard.press(special[key])
-        keyboard.release(special[key])
+    if key in SPECIAL:
+        keyboard.press(SPECIAL[key])
+        keyboard.release(SPECIAL[key])
 
 
-def input_shortcut(modifier, key):
+def press_shortcut(modifier, key):
 
-    modifier_map = {
+    MOD = {
         "Ctrl": Key.ctrl,
         "Shift": Key.shift,
         "Alt": Key.alt,
         "Win": Key.cmd
     }
 
-    special = {
-        "Up": Key.up,
-        "Down": Key.down,
-        "Left": Key.left,
-        "Right": Key.right,
-        "Tab": Key.tab
-    }
+    keyboard.press(MOD[modifier])
 
-    mod = modifier_map.get(modifier)
-
-    if mod is None:
-        return
-
-    keyboard.press(mod)
-
-    if key in special:
-        keyboard.press(special[key])
-        keyboard.release(special[key])
+    if key in SPECIAL:
+        keyboard.press(SPECIAL[key])
+        keyboard.release(SPECIAL[key])
     else:
         keyboard.press(key.lower())
         keyboard.release(key.lower())
 
-    keyboard.release(mod)
+    keyboard.release(MOD[modifier])

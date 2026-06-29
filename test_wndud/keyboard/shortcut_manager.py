@@ -1,14 +1,15 @@
 # shortcut_manager.py
-from keyboard_input import input_key, input_shortcut
+
 import time
+from keyboard_input import press_key, press_shortcut
 
 # =========================
 # 현재 활성 modifier
 # =========================
 active_modifier = None
 
-# 현재 hover 중 키
-current_hover_key = None
+# 현재 레이저가 가리키는 키
+hover_key = None
 
 # modifier 시작 시간
 modifier_start_time = None
@@ -65,14 +66,17 @@ WIN_ALLOWED_KEYS = {
 # =========================
 def normalize_key(key):
 
-    if key in ["Ctrl"]:
+    if key == "Ctrl":
         return "Ctrl"
 
     if key in ["LShift", "RShift"]:
         return "Shift"
 
-    if key in ["Alt"]:
+    if key == "Alt":
         return "Alt"
+
+    if key == "Win":
+        return "Win"
 
     return key
 
@@ -95,13 +99,6 @@ def get_allowed_keys(modifier):
         return WIN_ALLOWED_KEYS
 
     return set()
-
-
-# =========================
-# 현재 modifier 반환
-# =========================
-def get_active_modifier():
-    return active_modifier
 
 
 # =========================
@@ -142,98 +139,96 @@ def check_modifier_timeout():
         clear_modifier()
 
 
-# =========================
-# 키 처리
-# =========================
+# ======================================================
+# 레이저가 현재 어떤 키를 가리키는지만 저장
+# (입력하지 않음!!)
+# ======================================================
 def process_key(detected_key):
 
+    global hover_key
+
+    hover_key = detected_key
+
+
+# ======================================================
+# 얼굴인식에서 좌클릭 신호가 들어오면 호출
+# ======================================================
+def click_current_key():
+
+    global hover_key
+
+    if hover_key is None:
+        return
+
+    process_click(hover_key)
+
+
+# ======================================================
+# 실제 입력 처리
+# ======================================================
+def process_click(detected_key):
+
     global active_modifier
-    global current_hover_key
     global modifier_start_time
+
+    check_modifier_timeout()
 
     if detected_key is None:
         return
 
-    # =========================
-    # timeout 체크
-    # =========================
-    check_modifier_timeout()
-
-    # =========================
-    # 같은 키 반복 방지
-    # =========================
-    if detected_key == current_hover_key:
-        return
-
-    current_hover_key = detected_key
-
-    # =========================
-    # modifier 키 선택
-    # =========================
+    # -----------------------------
+    # modifier 선택
+    # -----------------------------
     if detected_key in MODIFIER_KEYS:
 
-        new_modifier = normalize_key(detected_key)
+        active_modifier = normalize_key(detected_key)
+        modifier_start_time = time.time()
 
-        # modifier 변경 가능
-        if active_modifier != new_modifier:
-
-            if active_modifier is not None:
-
-                print(
-                    f"[MOD CHANGE] "
-                    f"{active_modifier} -> {new_modifier}"
-                )
-
-            active_modifier = new_modifier
-
-            modifier_start_time = time.time()
-
-            print(f"[MOD SET] {active_modifier}")
+        print(f"[MOD SET] {active_modifier}")
 
         return
 
-    # =========================
-    # modifier 유지 상태
-    # =========================
+    # -----------------------------
+    # modifier 적용
+    # -----------------------------
     if active_modifier is not None:
 
-        # 허용 키 목록
-        allowed_keys = get_allowed_keys(active_modifier)
+        allowed = get_allowed_keys(active_modifier)
 
-        # 허용 키
-        if detected_key in allowed_keys:
+        if detected_key in allowed:
 
-            print(
-                f"[SHORTCUT] "
-                f"{active_modifier} + {detected_key}"
-            )
+            print(f"[SHORTCUT] {active_modifier} + {detected_key}")
 
-            input_shortcut(active_modifier, detected_key)
+            press_shortcut(active_modifier, detected_key)
 
             clear_modifier()
 
-            return
-
-        # 허용 안 된 키
         else:
+            print(f"[IGNORED] {detected_key}")
 
-            # modifier 유지
-            return
+        return
 
-    # =========================
-    # 일반 키
-    # =========================
+    # -----------------------------
+    # 일반 키 입력
+    # -----------------------------
     print(f"[KEY] {detected_key}")
 
-    input_key(detected_key)
+    press_key(detected_key)
 
 
-# =========================
-# 레이저 뗐을 때
-# =========================
+# ======================================================
+# 현재 레이저가 가리키는 키 반환 (선택사항)
+# ======================================================
+def get_hover_key():
+
+    return hover_key
+
+
+# ======================================================
+# 레이저가 키에서 벗어났을 때
+# ======================================================
 def reset_key_state():
 
-    global current_hover_key
+    global hover_key
 
-    current_hover_key = None
-
+    hover_key = None
