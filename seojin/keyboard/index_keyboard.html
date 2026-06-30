@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Face Mouse Gesture Settings</title>
+  <title>Face Gesture Settings</title>
 
   <style>
     body {
@@ -165,7 +165,7 @@
 <body>
   <main>
     <div class="title-box">
-      <h1>얼굴 제스처 마우스 설정</h1>
+      <h1>얼굴 제스처 설정</h1>
       <p>각 기능에 원하는 표정이나 얼굴 제스처를 설정하세요.</p>
     </div>
 
@@ -221,12 +221,7 @@
     const TEST_STABLE_FRAMES = 6;
     const MIN_NEUTRAL_CHANGE = 0.035;
 
-    const PYTHON_SERVER_URL = "http://127.0.0.1:5000/gesture";
-    const SEND_COOLDOWN_MS = 900;
-
     let laserActive = false;
-    let lastSentAction = null;
-    let lastSentTime = 0;
 
     const ws = new WebSocket("ws://127.0.0.1:8765");
 
@@ -495,47 +490,13 @@
       };
     }
 
-    async function sendGestureToPython(action) {
-      try {
-        await fetch(PYTHON_SERVER_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ action })
-        });
-      } catch (error) {
-        console.error("Python 서버로 제스처 전송 실패:", error);
-      }
-    }
-
-    function canSendAction(action) {
-      const now = Date.now();
-
-      if (action !== lastSentAction) {
-        lastSentAction = action;
-        lastSentTime = now;
-        return true;
-      }
-
-      if (now - lastSentTime > SEND_COOLDOWN_MS) {
-        lastSentTime = now;
-        return true;
-      }
-
-      return false;
-    }
-
     function testGesture() {
       if (!isTesting || !latestVector) return;
 
-      // 키보드 모드 기준:
-      // 레이저가 키보드 화면에서 잡히면 얼굴 제스처 인식 중지
       if (laserActive) {
         overlayText.textContent = "레이저 인식 중";
         lastLabel = null;
         stableCount = 0;
-        lastSentAction = null;
         return;
       }
 
@@ -553,7 +514,6 @@
         overlayText.textContent = "미감지";
         lastLabel = null;
         stableCount = 0;
-        lastSentAction = null;
         return;
       }
 
@@ -571,7 +531,6 @@
         overlayText.textContent = "미감지";
         lastLabel = null;
         stableCount = 0;
-        lastSentAction = null;
         return;
       }
 
@@ -584,10 +543,6 @@
 
       if (stableCount >= TEST_STABLE_FRAMES) {
         overlayText.textContent = `감지: ${best.label}`;
-
-        if (canSendAction(best.id)) {
-          sendGestureToPython(best.id);
-        }
       } else {
         overlayText.textContent = `확인 중: ${best.label}`;
       }
@@ -611,7 +566,6 @@
       isTesting = false;
       lastLabel = null;
       stableCount = 0;
-      lastSentAction = null;
 
       modalTitle.textContent = `${action.label} 설정`;
       overlayText.textContent = "대기";
@@ -635,7 +589,6 @@
       isTesting = true;
       lastLabel = null;
       stableCount = 0;
-      lastSentAction = null;
 
       modalTitle.textContent = "저장된 제스처 테스트";
       overlayText.textContent = "테스트 중";
