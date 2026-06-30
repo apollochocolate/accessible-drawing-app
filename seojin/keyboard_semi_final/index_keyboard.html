@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Face Gesture Settings</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 24px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+    }
+
+    .title-box {
+      background: #e8f1ff;
+      padding: 22px 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .title-box p {
+      margin: 0;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .saved {
+      color: green;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .not-saved {
+      color: #777;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    button {
+      padding: 9px 14px;
+      border: 1px solid #9bb8e8;
+      background: #e8f1ff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #d8e8ff;
+    }
+
+    .test-btn {
+      margin-top: 20px;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 999;
+    }
+
+    .modal-bg.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(900px, 100%);
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .video-box {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      background: #000;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    video,
+    #faceCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    #faceCanvas {
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #overlayText {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      color: #ffd400;
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 1px 1px 4px #000;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    #statusText {
+      margin-top: 12px;
+      font-size: 15px;
+      color: #333;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="title-box">
+      <h1>얼굴 제스처 설정</h1>
+      <p>각 기능에 원하는 표정이나 얼굴 제스처를 설정하세요.</p>
+    </div>
+
+    <div id="menu"></div>
+
+    <button class="test-btn" id="testBtn">
+      저장된 제스처 테스트
+    </button>
+  </main>
+
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">제스처 설정</h2>
+        <button id="closeBtn">닫기</button>
+      </div>
+
+      <div class="video-box">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="faceCanvas"></canvas>
+        <div id="overlayText">대기</div>
+      </div>
+
+      <div id="statusText">촬영 시작을 누르세요.</div>
+
+      <div class="buttons">
+        <button id="deleteBtn">설정 삭제</button>
+        <button id="recordBtn">촬영 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      FaceLandmarker,
+      FilesetResolver,
+      DrawingUtils
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+    const actions = [
+      { id: "neutral", label: "기본 중립 얼굴" },
+      { id: "left_single", label: "마우스 왼쪽 싱글클릭" },
+      { id: "right_single", label: "마우스 오른쪽 싱글클릭" },
+      { id: "left_double", label: "마우스 왼쪽 더블클릭" },
+      { id: "scroll_up", label: "스크롤 위" },
+      { id: "scroll_down", label: "스크롤 아래" }
+    ];
+
+    const STORAGE_KEY = "face_mouse_gestures";
+
+    const TEST_THRESHOLD = 0.23;
+    const TEST_MARGIN = 0.01;
+    const TEST_STABLE_FRAMES = 6;
+    const MIN_NEUTRAL_CHANGE = 0.035;
+
+    let laserActive = false;
+
+    const ws = new WebSocket("ws://127.0.0.1:8765");
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+    ws.onerror = (error) => {
+      console.log("WebSocket error", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket closed");
+      laserActive = false;
+    };
+
+    ws.onmessage = (event) => {
+      laserActive = event.data === "LASER_ON";
+    };
+
+    const menu = document.getElementById("menu");
+    const modalBg = document.getElementById("modalBg");
+    const modalTitle = document.getElementById("modalTitle");
+    const closeBtn = document.getElementById("closeBtn");
+    const recordBtn = document.getElementById("recordBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const testBtn = document.getElementById("testBtn");
+    const video = document.getElementById("video");
+    const faceCanvas = document.getElementById("faceCanvas");
+    const faceCtx = faceCanvas.getContext("2d");
+    const overlayText = document.getElementById("overlayText");
+    const statusText = document.getElementById("statusText");
+
+    let currentAction = null;
+    let stream = null;
+    let landmarker = null;
+    let drawingUtils = null;
+    let latestVector = null;
+    let animationId = null;
+    let isRecording = false;
+    let isTesting = false;
+    let lastLabel = null;
+    let stableCount = 0;
+
+    function getSettings() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    }
+
+    function setSettings(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderMenu();
+    }
+
+    function renderMenu() {
+      const settings = getSettings();
+      menu.innerHTML = "";
+
+      actions.forEach(action => {
+        const saved = Boolean(settings[action.id]);
+
+        const div = document.createElement("div");
+        div.className = "item";
+
+        div.innerHTML = `
+          <div>
+            <strong>${action.label}</strong>
+            <div class="${saved ? "saved" : "not-saved"}">
+              ${saved ? "설정 완료" : "아직 설정 안 됨"}
+            </div>
+          </div>
+          <button>설정</button>
+        `;
+
+        div.querySelector("button").onclick = () => openSetting(action);
+        menu.appendChild(div);
+      });
+    }
+
+    async function initLandmarker() {
+      if (landmarker) return;
+
+      statusText.textContent = "얼굴 인식 모델을 불러오는 중입니다.";
+
+      const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+      );
+
+      landmarker = await FaceLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath:
+            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
+          delegate: "CPU"
+        },
+        runningMode: "VIDEO",
+        numFaces: 1,
+        outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true
+      });
+
+      drawingUtils = new DrawingUtils(faceCtx);
+    }
+
+    async function startCamera() {
+      if (stream) return;
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
+
+        video.srcObject = stream;
+
+        await new Promise(resolve => {
+          video.onloadedmetadata = resolve;
+        });
+
+        faceCanvas.width = video.videoWidth;
+        faceCanvas.height = video.videoHeight;
+      } catch (error) {
+        overlayText.textContent = "카메라 오류";
+        statusText.textContent = "카메라 권한 또는 연결 상태를 확인하세요.";
+        console.error(error);
+      }
+    }
+
+    function stopCamera() {
+      if (animationId) cancelAnimationFrame(animationId);
+
+      animationId = null;
+
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+
+      video.srcObject = null;
+      latestVector = null;
+
+      faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+    }
+
+    function drawFaceLandmarks(faceLandmarks) {
+      faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+
+      if (!drawingUtils || !faceLandmarks || !faceLandmarks.length) return;
+
+      faceLandmarks.forEach(landmarks => {
+        drawingUtils.drawConnectors(
+          landmarks,
+          FaceLandmarker.FACE_LANDMARKS_TESSELATION,
+          { color: "rgba(0, 160, 255, 0.35)", lineWidth: 1 }
+        );
+
+        drawingUtils.drawConnectors(
+          landmarks,
+          FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
+          { color: "#00ff00", lineWidth: 2 }
+        );
+
+        drawingUtils.drawConnectors(
+          landmarks,
+          FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
+          { color: "#00ff00", lineWidth: 2 }
+        );
+
+        drawingUtils.drawConnectors(
+          landmarks,
+          FaceLandmarker.FACE_LANDMARKS_LIPS,
+          { color: "#ffd400", lineWidth: 2 }
+        );
+      });
+    }
+
+    function makeVector(result) {
+      const vector = {};
+
+      const blendshapes = result.faceBlendshapes || [];
+      const landmarks = result.faceLandmarks?.[0];
+
+      if (blendshapes.length) {
+        blendshapes[0].categories.forEach(item => {
+          vector[item.categoryName] = item.score;
+        });
+      }
+
+      if (landmarks) {
+        const nose = landmarks[1];
+        const forehead = landmarks[10];
+        const chin = landmarks[152];
+        const leftEye = landmarks[33];
+        const rightEye = landmarks[263];
+
+        if (nose && forehead && chin && leftEye && rightEye) {
+          const eyeY = (leftEye.y + rightEye.y) / 2;
+          const faceH = Math.max(Math.abs(chin.y - forehead.y), 0.001);
+
+          vector.__head_pitch_1 = (nose.y - eyeY) / faceH;
+          vector.__head_pitch_2 = (chin.y - eyeY) / faceH;
+          vector.__head_z = (nose.z || 0) / faceH;
+        }
+      }
+
+      const matrix = result.facialTransformationMatrixes?.[0];
+      const data = matrix?.data || matrix;
+
+      if (data) {
+        for (let i = 0; i < data.length; i++) {
+          vector[`__pose_${i}`] = data[i] * 0.15;
+        }
+      }
+
+      return Object.keys(vector).length ? vector : null;
+    }
+
+    function averageVectors(vectors) {
+      const avg = {};
+
+      vectors.forEach(vector => {
+        Object.entries(vector).forEach(([key, value]) => {
+          avg[key] = (avg[key] || 0) + value;
+        });
+      });
+
+      Object.keys(avg).forEach(key => {
+        avg[key] /= vectors.length;
+      });
+
+      return avg;
+    }
+
+    function distance(a, b) {
+      if (!a || !b) return Infinity;
+
+      const keys = Object.keys(b);
+      let sum = 0;
+
+      keys.forEach(key => {
+        const diff = (a[key] || 0) - (b[key] || 0);
+        sum += diff * diff;
+      });
+
+      return Math.sqrt(sum / Math.max(keys.length, 1));
+    }
+
+    function findGesture(vector) {
+      const settings = getSettings();
+      const list = [];
+
+      Object.entries(settings).forEach(([id, data]) => {
+        if (id === "neutral") return;
+        if (!data.vector) return;
+
+        list.push({
+          id,
+          label: data.label,
+          distance: distance(vector, data.vector)
+        });
+      });
+
+      list.sort((a, b) => a.distance - b.distance);
+
+      return {
+        best: list[0],
+        second: list[1]
+      };
+    }
+
+    function testGesture() {
+      if (!isTesting || !latestVector) return;
+
+      if (laserActive) {
+        overlayText.textContent = "레이저 인식 중";
+        lastLabel = null;
+        stableCount = 0;
+        return;
+      }
+
+      const settings = getSettings();
+      const neutral = settings.neutral?.vector;
+
+      if (!neutral) {
+        overlayText.textContent = "중립 얼굴 필요";
+        return;
+      }
+
+      const neutralDist = distance(latestVector, neutral);
+
+      if (neutralDist < MIN_NEUTRAL_CHANGE) {
+        overlayText.textContent = "미감지";
+        lastLabel = null;
+        stableCount = 0;
+        return;
+      }
+
+      const { best, second } = findGesture(latestVector);
+
+      if (!best) {
+        overlayText.textContent = "제스처 없음";
+        return;
+      }
+
+      const margin = (second ? second.distance : Infinity) - best.distance;
+      const detected = best.distance <= TEST_THRESHOLD && margin >= TEST_MARGIN;
+
+      if (!detected) {
+        overlayText.textContent = "미감지";
+        lastLabel = null;
+        stableCount = 0;
+        return;
+      }
+
+      if (lastLabel === best.label) {
+        stableCount++;
+      } else {
+        lastLabel = best.label;
+        stableCount = 1;
+      }
+
+      if (stableCount >= TEST_STABLE_FRAMES) {
+        overlayText.textContent = `감지: ${best.label}`;
+      } else {
+        overlayText.textContent = `확인 중: ${best.label}`;
+      }
+    }
+
+    function loop() {
+      if (!landmarker || !video.srcObject) return;
+
+      const result = landmarker.detectForVideo(video, performance.now());
+
+      latestVector = makeVector(result);
+      drawFaceLandmarks(result.faceLandmarks);
+
+      testGesture();
+
+      animationId = requestAnimationFrame(loop);
+    }
+
+    async function openSetting(action) {
+      currentAction = action;
+      isTesting = false;
+      lastLabel = null;
+      stableCount = 0;
+
+      modalTitle.textContent = `${action.label} 설정`;
+      overlayText.textContent = "대기";
+
+      statusText.style.display = "block";
+      statusText.textContent = "촬영 시작을 누르면 2초 준비 후 3초 동안 저장합니다.";
+
+      recordBtn.style.display = "inline-block";
+      deleteBtn.style.display = "inline-block";
+
+      modalBg.classList.add("open");
+
+      await initLandmarker();
+      await startCamera();
+
+      loop();
+    }
+
+    async function openTest() {
+      currentAction = null;
+      isTesting = true;
+      lastLabel = null;
+      stableCount = 0;
+
+      modalTitle.textContent = "저장된 제스처 테스트";
+      overlayText.textContent = "테스트 중";
+
+      statusText.style.display = "none";
+      recordBtn.style.display = "none";
+      deleteBtn.style.display = "none";
+
+      modalBg.classList.add("open");
+
+      await initLandmarker();
+      await startCamera();
+
+      loop();
+    }
+
+    function closeModal() {
+      if (isRecording) return;
+
+      isTesting = false;
+
+      stopCamera();
+
+      modalBg.classList.remove("open");
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function countdown(seconds, text) {
+      for (let i = seconds; i > 0; i--) {
+        overlayText.textContent = `${text} ${i}`;
+        await wait(1000);
+      }
+    }
+
+    async function recordGesture() {
+      if (!currentAction || isRecording) return;
+
+      isRecording = true;
+
+      recordBtn.disabled = true;
+      deleteBtn.disabled = true;
+      closeBtn.disabled = true;
+
+      const samples = [];
+
+      await countdown(2, "준비");
+
+      statusText.textContent = "제스처를 유지하세요.";
+
+      const start = performance.now();
+
+      while (performance.now() - start < 3000) {
+        const remain = Math.ceil((3000 - (performance.now() - start)) / 1000);
+
+        overlayText.textContent = `저장 중 ${remain}`;
+
+        if (latestVector) {
+          samples.push({ ...latestVector });
+        }
+
+        await wait(100);
+      }
+
+      if (samples.length >= 5) {
+        const settings = getSettings();
+
+        settings[currentAction.id] = {
+          label: currentAction.label,
+          vector: averageVectors(samples),
+          createdAt: new Date().toISOString()
+        };
+
+        setSettings(settings);
+
+        overlayText.textContent = "저장 완료";
+        statusText.textContent = `${currentAction.label} 저장 완료`;
+      } else {
+        overlayText.textContent = "저장 실패";
+        statusText.textContent = "얼굴을 충분히 인식하지 못했습니다.";
+      }
+
+      recordBtn.disabled = false;
+      deleteBtn.disabled = false;
+      closeBtn.disabled = false;
+
+      isRecording = false;
+    }
+
+    function deleteGesture() {
+      if (!currentAction) return;
+
+      const settings = getSettings();
+
+      delete settings[currentAction.id];
+
+      setSettings(settings);
+
+      overlayText.textContent = "삭제 완료";
+      statusText.textContent = `${currentAction.label} 설정 삭제 완료`;
+    }
+
+    recordBtn.onclick = recordGesture;
+    deleteBtn.onclick = deleteGesture;
+    closeBtn.onclick = closeModal;
+    testBtn.onclick = openTest;
+
+    renderMenu();
+  </script>
+</body>
+</html>
