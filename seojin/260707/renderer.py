@@ -12,7 +12,7 @@ def load_font(size):
 
         # Linux
         "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-        "/usr/share/fonts/truet�큮pe/nanum/NanumBarunGothic.ttf",
+        "/usr/share/fonts/truet 큮pe/nanum/NanumBarunGothic.ttf",
 
         # Mac
         "/System/Library/Fonts/AppleSDGothicNeo.ttc",

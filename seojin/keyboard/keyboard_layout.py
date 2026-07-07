@@ -1,10 +1,10 @@
 # keyboard_layout.py
 
 U   = 36
-H   = 60
+H   = 30
 GAP = 2
 
-WIN_W, WIN_H = 640, 480
+WIN_W, WIN_H = 640, 280
 
 KB_ROWS    = 7
 KB_TOTAL_H = KB_ROWS * (H + GAP)
@@ -49,7 +49,7 @@ for fname in ["PrtScr","Ins","Del"]:
 
 make_row([("`",1),("1",1),("2",1),("3",1),("4",1),("5",1),
           ("6",1),("7",1),("8",1),("9",1),("0",1),
-          ("-",1),("=",1),("BkSp",1.9)], KB_X, y1)
+          ("-",1),("=",1),("Backspace",1.9)], KB_X, y1)
 
 make_row([("Tab",1.4),("Q",1),("W",1),("E",1),("R",1),
           ("T",1),("Y",1),("U",1),("I",1),("O",1),
@@ -68,7 +68,7 @@ make_row([("Ctrl",3.1),("Space",6.3),
 
 
 bottom_keys = [
-    ("Mode", 3.0),
+    #("Mode", 3.0),
     ("Fn",   1.3),
     ("한자 ", 1.4),
     ("Win",  1.4),
@@ -101,3 +101,5 @@ def get_key_at(x, y):
         if x1 <= x <= x2 and y1 <= y <= y2:
             return name
     return None
+
+SEPARATOR_Y = y5 + H + 10

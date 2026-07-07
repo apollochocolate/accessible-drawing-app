@@ -300,8 +300,19 @@ def capture_runtime_neutral(face_cap, face_landmarker):
         if not ret:
             continue
 
-        # 얼굴 카메라는 내부적으로만 사용합니다.
-        # 별도의 Face Gesture Control 창을 띄우지 않습니다.
+        remain = max(0.0, RUNTIME_NEUTRAL_SECONDS - (time.time() - start))
+        preview = frame.copy()
+        cv2.putText(
+            preview,
+            f"Neutral calibration {remain:.1f}s",
+            (30, 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.75,
+            (0, 255, 255),
+            2,
+        )
+        cv2.imshow("Face Gesture Control", preview)
+        cv2.waitKey(1)
 
         ts = int(time.time() * 1000)
         if ts <= last_ts:

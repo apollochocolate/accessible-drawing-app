@@ -207,7 +207,7 @@
     ];
 
     const STORAGE_KEY = "face_mouse_gestures";
-    const PYTHON_SERVER_URL = window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:5000";
+    const PYTHON_SERVER_URL = "http://127.0.0.1:5000";
 
     const TEST_THRESHOLD = 0.23;
     const TEST_MARGIN = 0.01;
@@ -273,13 +273,6 @@
       }
     }
 
-    function hasAllRequiredGestures(settings) {
-      return actions.every(action => {
-        const item = settings[action.id];
-        return item && item.vector;
-      });
-    }
-
     async function loadSettingsFromPython() {
       try {
         const response = await fetch(`${PYTHON_SERVER_URL}/gestures`);
@@ -290,16 +283,6 @@
           serverSaveText.textContent = "Python에 저장된 gestures.json 불러옴";
           serverSaveText.className = "saved";
           renderMenu();
-          return;
-        }
-
-        // Python 서버에는 아직 gestures.json이 없지만,
-        // 브라우저 localStorage에 이미 저장된 제스처가 있으면 자동으로 Python에 동기화합니다.
-        const localSettings = getSettings();
-        if (hasAllRequiredGestures(localSettings)) {
-          serverSaveText.textContent = "브라우저 저장값을 Python에 자동 동기화 중...";
-          serverSaveText.className = "not-saved";
-          await saveSettingsToPython(localSettings);
           return;
         }
 
