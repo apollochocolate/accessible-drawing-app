@@ -23,8 +23,6 @@ MODIFIER_TIMEOUT = 5
 # =========================
 MODIFIER_KEYS = {
     "Ctrl",
-    "LShift",
-    "RShift",
     "Alt",
     "Win"
 }
@@ -180,7 +178,10 @@ def process_click(detected_key):
     # modifier 선택
     # -----------------------------
     if detected_key in MODIFIER_KEYS:
-
+        if detected_key in ["LShift","RShift","Caps","한/영"]:
+            press_key(detected_key)
+            return
+        
         new_modifier = normalize_key(detected_key)
 
         if active_modifier != new_modifier:
