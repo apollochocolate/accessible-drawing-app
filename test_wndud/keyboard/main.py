@@ -6,6 +6,7 @@ import numpy as np
 #     process_mode_key,
 #     is_laser_only_mode
 # )
+from keyboard_listener import start_keyboard_listener
 from keyboard_layout import KEY_MAP
 from laser_detect import detect_red_laser
 from renderer import draw_keyboard_overlay
@@ -43,6 +44,7 @@ cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 
 cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 controller = InputController()
+start_keyboard_listener(controller)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
