@@ -4,14 +4,12 @@ from PIL import ImageFont, ImageDraw, Image
 
 WIN_W, WIN_H = 640, 480
 
-U   = 36
-H   = 60
+U   = 28
+H   = 42
 GAP = 2
 
-KB_ROWS    = 7
-KB_TOTAL_H = KB_ROWS * (H + GAP)
-KB_Y       = (WIN_H - KB_TOTAL_H) // 2
-KB_X       = 8
+KB_Y  = 20
+KB_X  = 8
 
 KEY_MAP = {}
 
