@@ -37,7 +37,7 @@ from config_combined import (
 )
 from keyboard_listener import start_keyboard_listener
 from keyboard_layout import KEY_MAP
-from renderer import draw_keyboard_overlay
+from renderer_updated import draw_keyboard_overlay
 from input_controller import InputController
 
 from gesture_store import start_gesture_save_server, wait_for_gesture_settings
