@@ -49,6 +49,11 @@ from face_features import (
 )
 from laser_tracker import detect_laser
 from mouse_controller import mouse_zone_to_screen, move_mouse_to, execute_mouse_action
+from stt_voice_click import VoiceController
+
+
+# keyboard_layout.py에서 음성 키 이름을 "Voice"로 추가하는 것을 권장합니다.
+VOICE_KEY_NAMES = {"Voice", "VOICE", "음성", "STT"}
 
 
 def get_key_at(x, y):
@@ -83,18 +88,25 @@ def put_status(frame, text, y, color=(255, 255, 255)):
     )
 
 
-def route_face_action(action_id, zone, controller):
-    """얼굴 제스처 결과를 현재 영역에 맞게 전달합니다."""
+def route_face_action(action_id, zone, controller, detected_key, voice_controller):
+    """얼굴 제스처 결과를 키보드·음성·마우스 동작으로 전달합니다."""
     if not action_id:
         return
 
-    # 키보드 영역에서는 왼쪽 싱글클릭만 '현재 키 선택'으로 사용합니다.
+    # 키보드의 음성 키는 left_single 제스처로만 ON/OFF 한다.
     if zone == "keyboard":
         if action_id == "left_single":
-            controller.left_click()
+            if detected_key in VOICE_KEY_NAMES:
+                if voice_controller.toggle():
+                    print("[음성] 음성 제어를 시작합니다.")
+                else:
+                    print("[음성] 음성 제어를 종료 요청했습니다.")
+                controller.update_hover(None)  # Voice라는 글자가 OS에 입력되지 않게 차단
+            else:
+                controller.left_click()
         return
 
-    # 마우스 영역 또는 레이저가 없는 상태에서는 마우스 동작 실행
+    # 음성 명령도 이 함수와 같은 execute_mouse_action()으로 연결된다.
     execute_mouse_action(action_id)
 
 
@@ -123,6 +135,8 @@ def main():
     face_recognizer = FaceGestureRecognizer(settings, neutral_vector)
 
     controller = InputController()
+    # STT가 기존 마우스 제스처와 동일한 실행 함수를 사용하도록 연결
+    voice_controller = VoiceController(execute_mouse_action)
     start_keyboard_listener(controller)
 
     x_history = deque(maxlen=5)
@@ -147,6 +161,7 @@ def main():
     print("구분선 위: 키보드 영역")
     print("구분선 아래: 마우스 영역")
     print("키보드 영역 + 얼굴 left click: 현재 글자 입력")
+    print("Voice 키 + 얼굴 left click: 음성 제어 ON/OFF")
     print("마우스 영역 + 얼굴 제스처: 클릭/우클릭/더블클릭/스크롤")
     print("q 또는 ESC: 종료")
 
@@ -328,7 +343,9 @@ def main():
                     face_allowed,
                 )
 
-                route_face_action(action_id, current_zone, controller)
+                route_face_action(
+                    action_id, current_zone, controller, detected_key, voice_controller
+                )
 
                 # 얼굴 인식 상태는 얼굴 화면에 표시
                 cv2.putText(
@@ -348,6 +365,7 @@ def main():
             # ==================================================
             # 4. 친구 키보드 + 마우스 영역 화면 표시
             # ==================================================
+            put_status(frame, voice_controller.last_message, WIN_H - 15, (0, 255, 0) if voice_controller.is_running else (180, 180, 180))
             draw_keyboard_overlay(frame, KEY_MAP, detected_key)
             cv2.imshow("Laser Keyboard", frame)
 
@@ -356,6 +374,7 @@ def main():
                 break
 
     finally:
+        voice_controller.stop()
         laser_cap.release()
         face_cap.release()
         cv2.destroyAllWindows()
