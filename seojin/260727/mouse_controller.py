@@ -32,16 +32,11 @@ def move_mouse_to(x, y):
 def execute_mouse_action(action_id):
     if action_id == "left_single":
         pyautogui.click()
-        print("[MOUSE] 왼쪽 클릭")
     elif action_id == "right_single":
         pyautogui.rightClick()
-        print("[MOUSE] 오른쪽 클릭")
     elif action_id == "left_double":
         pyautogui.doubleClick()
-        print("[MOUSE] 더블클릭")
     elif action_id == "scroll_up":
         pyautogui.scroll(5)
-        print("[MOUSE] 스크롤 위")
     elif action_id == "scroll_down":
         pyautogui.scroll(-5)
-        print("[MOUSE] 스크롤 아래")

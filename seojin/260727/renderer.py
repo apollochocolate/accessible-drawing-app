@@ -84,6 +84,7 @@ LABEL_MAP = {
     "한/영":"한/영",
     "Win":"Win",
     "Fn":"Fn",
+    "Voice":"음성",
 }
 
 
@@ -109,6 +110,7 @@ SPECIAL = {
     "한자",
     "Win",
     "한/영",
+    "Voice",
 
     "PrtScr",
     "Ins",

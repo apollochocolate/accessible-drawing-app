@@ -4,3 +4,5 @@ pyautogui
 mediapipe
 pynput
 Pillow
+SpeechRecognition
+PyAudio

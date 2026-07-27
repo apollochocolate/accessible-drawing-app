@@ -123,6 +123,13 @@ def process_click(detected_key):
     if detected_key is None:
         return
 
+    # Voice는 main.py에서 음성 토글 버튼으로 처리합니다.
+    # 혹시 여기까지 들어오면 일반 키 입력으로 보내지 않고 무시합니다.
+    if detected_key in ["Voice", "음성"]:
+        print("[VOICE KEY] main.py에서 처리됨")
+        hover_key = None
+        return
+
     # Shift / Caps / 한영은 즉시 처리
     if detected_key in ["LShift", "RShift", "Shift", "Caps", "한/영"]:
         press_key(detected_key)
