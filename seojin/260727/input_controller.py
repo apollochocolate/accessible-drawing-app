@@ -43,11 +43,12 @@ class InputController:
         now = time.time()
 
         if now - self.last_click_time < self.click_delay:
-            return
+            return False
 
         self.last_click_time = now
 
         click_current_key()
+        return True
 
 
     # ==========================

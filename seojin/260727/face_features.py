@@ -35,6 +35,8 @@ from config_combined import (
     SIGNATURE_MIN_FEATURE_CHANGE,
     SIGNATURE_MAX_FEATURES,
     ACTION_COOLDOWN,
+    SHOW_CAMERA_WINDOWS,
+    SHOW_DEBUG_OVERLAY,
 )
 
 
@@ -300,19 +302,21 @@ def capture_runtime_neutral(face_cap, face_landmarker):
         if not ret:
             continue
 
-        remain = max(0.0, RUNTIME_NEUTRAL_SECONDS - (time.time() - start))
-        preview = frame.copy()
-        cv2.putText(
-            preview,
-            f"Neutral calibration {remain:.1f}s",
-            (30, 40),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.75,
-            (0, 255, 255),
-            2,
-        )
-        cv2.imshow("Face Gesture Control", preview)
-        cv2.waitKey(1)
+        if SHOW_CAMERA_WINDOWS:
+            remain = max(0.0, RUNTIME_NEUTRAL_SECONDS - (time.time() - start))
+            preview = frame.copy()
+            if SHOW_DEBUG_OVERLAY:
+                cv2.putText(
+                    preview,
+                    f"Neutral calibration {remain:.1f}s",
+                    (30, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.75,
+                    (0, 255, 255),
+                    2,
+                )
+            cv2.imshow("Face Gesture Control", preview)
+            cv2.waitKey(1)
 
         ts = int(time.time() * 1000)
         if ts <= last_ts:
