@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>정밀 색 구별 프로필 테스트</title>
+<style>
+:root{
+  --bg:#f4f7fb; --panel:#fff; --ink:#172033; --muted:#68758a; --line:#dfe6ef;
+  --blue:#2563eb; --blue2:#1d4ed8; --good:#18864b; --warn:#bf7a12; --bad:#c93b3b;
+  --shadow:0 14px 36px rgba(18,31,53,.08); --r:20px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Pretendard,"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+button,select{font:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 54px}
+.hero{background:linear-gradient(135deg,#eef5ff,#fff 58%,#f3f0ff);border:1px solid #e1e8f2;border-radius:28px;padding:30px;box-shadow:var(--shadow);margin-bottom:20px}
+.hero h1{margin:0 0 10px;font-size:34px;letter-spacing:-.03em}.hero p{margin:0;color:var(--muted);line-height:1.65}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.panel{background:var(--panel);border:1px solid #e4eaf2;border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+.panel h2,.panel h3{margin:0 0 12px}.small{font-size:13px;color:var(--muted);line-height:1.55}.steps{display:grid;gap:10px;margin-top:14px}.step{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:#f8fafc;border:1px solid #edf1f6}.num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#e8efff;color:#1d4ed8;font-weight:800;flex:none}
+.calib{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.gray{height:48px;border-radius:10px;border:1px solid rgba(0,0,0,.08)}
+.btn{border:0;border-radius:14px;padding:13px 18px;font-weight:800;cursor:pointer}.primary{background:var(--blue);color:white}.primary:hover{background:var(--blue2)}.secondary{background:#eef2f7;color:var(--ink)}
+.hidden{display:none!important}
+#testScreen{margin-top:20px}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px}.progress{height:10px;background:#e8eef5;border-radius:999px;overflow:hidden;flex:1}.progress>div{height:100%;background:linear-gradient(90deg,#2563eb,#7c3aed);width:0%;transition:width .25s ease}.phase{font-size:13px;color:var(--muted);white-space:nowrap}
+.task{background:white;border:1px solid #e2e8f0;border-radius:24px;padding:26px;box-shadow:var(--shadow)}.task h2{margin:0 0 6px}.task p{margin:0;color:var(--muted)}
+.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:28px auto 20px;max-width:780px}.choice{aspect-ratio:1;border:0;border-radius:50%;box-shadow:0 8px 22px rgba(15,23,42,.12), inset 0 0 0 1px rgba(255,255,255,.3);cursor:pointer;transition:.15s transform}.choice:hover{transform:scale(1.035)}
+.pairArea{display:grid;grid-template-columns:1fr 1fr;gap:30px;max-width:680px;margin:34px auto}.pairChip{height:210px;border-radius:28px;box-shadow:0 8px 22px rgba(15,23,42,.12), inset 0 0 0 1px rgba(255,255,255,.3)}
+.pairBtns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.answerBtn{min-width:150px;border:1px solid #ccd6e3;background:white;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer}.answerBtn:hover{border-color:#2563eb;color:#1d4ed8}
+.meta{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13px;color:var(--muted);margin-top:14px}.skip{background:none;border:0;color:#65748b;text-decoration:underline;cursor:pointer}
+.resultGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}.resultCard{border:1px solid #e1e8f1;border-radius:18px;padding:18px;background:#fbfdff}.resultCard strong{display:block;font-size:18px;margin-bottom:8px}.meter{height:10px;border-radius:999px;background:#e9eef5;overflow:hidden}.meter span{display:block;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)}.score{font-size:32px;font-weight:900;margin:8px 0}
+.summary{padding:18px;border-radius:18px;background:#f6f8ff;border:1px solid #dee5ff;margin-top:16px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.note{border-left:4px solid #93a4b9;background:#f8fafc;padding:12px 14px;border-radius:10px;color:#566274;font-size:13px;line-height:1.55;margin-top:14px}
+@media(max-width:760px){.grid,.resultGrid{grid-template-columns:1fr}.choices{grid-template-columns:repeat(2,1fr)}.pairArea{grid-template-columns:1fr}.pairChip{height:150px}.hero h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>정밀 색 구별 프로필 테스트</h1>
+    <p>한두 개의 쉬운 색 문제로 유형을 단정하지 않고, <b>적색계열·녹색계열·청황계열</b>을 여러 난이도에서 반복 측정합니다. 정답률뿐 아니라 <b>최소 구별 난이도, 반복 일관성, 반응시간</b>을 함께 기록해 맞춤형 보정 강도를 계산합니다.</p>
+  </section>
+
+  <section id="intro" class="grid">
+    <div class="panel">
+      <h2>테스트 구성</h2>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div><b>화면 확인</b><div class="small">밝기와 주변 조명을 일정하게 맞추고 회색 단계가 구분되는지 확인합니다.</div></div></div>
+        <div class="step"><div class="num">2</div><div><b>적응형 다른 색 찾기</b><div class="small">3개는 같은 색, 1개는 다른 색입니다. 맞히면 색 차이가 더 작아지고, 틀리면 다시 커집니다.</div></div></div>
+        <div class="step"><div class="num">3</div><div><b>같음/다름 확인</b><div class="small">두 색의 차이를 직접 판단해 우연히 찍어서 맞히는 영향을 줄입니다.</div></div></div>
+        <div class="step"><div class="num">4</div><div><b>개인 프로필 생성</b><div class="small">세 색 축의 혼동 정도와 권장 보정 강도를 0~100으로 저장합니다.</div></div></div>
+      </div>
+      <div class="note">이 검사는 의료적 진단용 검사가 아니라 <b>색각보정 시스템의 개인화 설정을 위한 프로파일링 테스트</b>입니다. 색각 이상 여부의 의학적 판정에는 표준화된 임상 검사가 필요합니다.</div>
+    </div>
+    <div class="panel">
+      <h3>화면 상태 먼저 확인</h3>
+      <p class="small">아래 회색 5단계가 서로 구분되도록 화면 밝기를 조정하세요. 야간 모드/블루라이트 필터는 가능하면 꺼 주세요.</p>
+      <div class="calib">
+        <div class="gray" style="background:#2b2b2b"></div><div class="gray" style="background:#555"></div><div class="gray" style="background:#858585"></div><div class="gray" style="background:#b9b9b9"></div><div class="gray" style="background:#ebebeb"></div>
+      </div>
+      <label class="small"><input id="calibCheck" type="checkbox"> 5단계가 모두 구분됩니다.</label>
+      <div style="margin-top:16px"><button id="startBtn" class="btn primary">테스트 시작</button></div>
+      <p class="small" style="margin-top:12px">약 3~4분 · 본 테스트 30문항 · 후반부 고난도 색차 포함</p>
+    </div>
+  </section>
+
+  <section id="testScreen" class="hidden">
+    <div class="topbar"><div class="progress"><div id="progressFill"></div></div><div class="phase" id="phaseLabel"></div></div>
+    <div class="task">
+      <h2 id="questionTitle"></h2>
+      <p id="questionDesc"></p>
+      <div id="oddArea" class="choices"></div>
+      <div id="pairArea" class="pairArea hidden"><div id="pairA" class="pairChip"></div><div id="pairB" class="pairChip"></div></div>
+      <div id="pairButtons" class="pairBtns hidden"><button class="answerBtn" data-pair="same">같아 보임</button><button class="answerBtn" data-pair="different">다르게 보임</button></div>
+      <div class="meta"><span id="trialMeta"></span><button id="unsureBtn" class="skip">잘 모르겠음</button></div>
+    </div>
+  </section>
+
+  <section id="resultScreen" class="panel hidden" style="margin-top:20px">
+    <h2>색 구별 프로필 결과</h2>
+    <p class="small">높은 점수일수록 해당 색 축에서 더 큰 색 차이가 필요했다는 뜻입니다.</p>
+    <div class="resultGrid" id="resultGrid"></div>
+    <div class="summary" id="summary"></div>
+    <div class="actions"><button id="saveBtn" class="btn primary">이 프로필 적용</button><button id="restartBtn" class="btn secondary">다시 테스트</button></div>
+  </section>
+</div>
+<script src="test.js"></script>
+</body>
+</html>
