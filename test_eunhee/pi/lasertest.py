@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 
+# 레이저 발사
 LASER_PIN = 18
 
 GPIO.setmode(GPIO.BCM)

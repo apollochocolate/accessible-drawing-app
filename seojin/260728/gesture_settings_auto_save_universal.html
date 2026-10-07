@@ -156,11 +156,15 @@
 <body>
   <main>
     <div class="title-box">
-      <h1>얼굴 제스처 마우스 설정</h1>
-      <p>각 기능에 원하는 표정이나 얼굴 제스처를 설정하세요.</p>
+      <h1>얼굴 제스처 저장 설정</h1>
+      <p>각 기능에 원하는 얼굴 움직임을 저장하세요. 고개 돌림, 기울임, 숙임, 눈 감기, 입 벌리기 등을 모두 사용할 수 있습니다. 저장하면 Python 폴더의 gestures.json에 자동 저장됩니다.</p>
     </div>
 
     <div id="menu"></div>
+
+
+    <p id="serverSaveText" class="not-saved" style="margin-top: 10px;">Python 자동 저장 서버 확인 중...</p>
+
     <button class="test-btn" id="testBtn">저장된 제스처 테스트</button>
   </main>
 
@@ -203,6 +207,7 @@
     ];
 
     const STORAGE_KEY = "face_mouse_gestures";
+    const PYTHON_SERVER_URL = "http://127.0.0.1:5000";
 
     const TEST_THRESHOLD = 0.23;
     const TEST_MARGIN = 0.01;
@@ -216,6 +221,7 @@
     const recordBtn = document.getElementById("recordBtn");
     const deleteBtn = document.getElementById("deleteBtn");
     const testBtn = document.getElementById("testBtn");
+    const serverSaveText = document.getElementById("serverSaveText");
     const video = document.getElementById("video");
     const faceCanvas = document.getElementById("faceCanvas");
     const faceCtx = faceCanvas.getContext("2d");
@@ -233,25 +239,6 @@
     let lastLabel = null;
     let stableCount = 0;
 
-    let laserActive = false;
-
-    const ws = new WebSocket("ws://127.0.0.1:8765");
-
-    ws.onopen = () => {
-      console.log("WebSocket connected");
-    };
-
-    ws.onerror = (e) => {
-      console.log("WebSocket error", e);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket closed");
-    };
-
-    ws.onmessage = (event) => {
-      laserActive = event.data === "LASER_ON";
-    };
 
     function getSettings() {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -260,6 +247,51 @@
     function setSettings(data) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       renderMenu();
+      saveSettingsToPython(data);
+    }
+
+    async function saveSettingsToPython(data) {
+      try {
+        const response = await fetch(`${PYTHON_SERVER_URL}/save_gestures`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.status === "ok") {
+          serverSaveText.textContent = "Python에 자동 저장 완료: gestures.json";
+          serverSaveText.className = "saved";
+        } else {
+          serverSaveText.textContent = "Python 자동 저장 실패: 브라우저에만 저장됨";
+          serverSaveText.className = "not-saved";
+        }
+      } catch (e) {
+        serverSaveText.textContent = "Python 서버 미연결: 브라우저에만 저장됨";
+        serverSaveText.className = "not-saved";
+      }
+    }
+
+    async function loadSettingsFromPython() {
+      try {
+        const response = await fetch(`${PYTHON_SERVER_URL}/gestures`);
+        const result = await response.json();
+
+        if (response.ok && result.status === "ok" && result.settings) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(result.settings));
+          serverSaveText.textContent = "Python에 저장된 gestures.json 불러옴";
+          serverSaveText.className = "saved";
+          renderMenu();
+          return;
+        }
+
+        serverSaveText.textContent = "Python 서버 연결됨: 아직 저장된 gestures.json 없음";
+        serverSaveText.className = "not-saved";
+      } catch (e) {
+        serverSaveText.textContent = "Python 서버 미연결: 저장은 브라우저에만 됩니다";
+        serverSaveText.className = "not-saved";
+      }
     }
 
     function renderMenu() {
@@ -373,35 +405,73 @@
       const blendshapes = result.faceBlendshapes || [];
       const landmarks = result.faceLandmarks?.[0];
 
+      // 1) MediaPipe blendshape 전체: 눈 감김, 입 벌림, 미소, 찡그림 등
       if (blendshapes.length) {
         blendshapes[0].categories.forEach(item => {
           vector[item.categoryName] = item.score;
         });
       }
 
+      // 2) 랜드마크 기반 특징: 고개 각도, 눈 위치, 입 벌림 등을 직접 저장
       if (landmarks) {
         const nose = landmarks[1];
         const forehead = landmarks[10];
         const chin = landmarks[152];
-        const leftEye = landmarks[33];
-        const rightEye = landmarks[263];
+        const leftEyeOuter = landmarks[33];
+        const rightEyeOuter = landmarks[263];
+        const leftCheek = landmarks[234];
+        const rightCheek = landmarks[454];
 
-        if (nose && forehead && chin && leftEye && rightEye) {
-          const eyeY = (leftEye.y + rightEye.y) / 2;
+        if (nose && forehead && chin && leftEyeOuter && rightEyeOuter && leftCheek && rightCheek) {
+          const faceW = Math.max(Math.abs(rightCheek.x - leftCheek.x), 0.001);
           const faceH = Math.max(Math.abs(chin.y - forehead.y), 0.001);
+          const eyeY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
+          const faceCenterX = (leftCheek.x + rightCheek.x) / 2;
 
-          vector.__head_pitch_1 = (nose.y - eyeY) / faceH;
-          vector.__head_pitch_2 = (chin.y - eyeY) / faceH;
+          // 고개 숙임/듦, 좌우 돌림, 좌우 기울임
+          vector.__head_pitch_nose = (nose.y - eyeY) / faceH;
+          vector.__head_pitch_chin = (chin.y - eyeY) / faceH;
+          vector.__head_yaw = (nose.x - faceCenterX) / faceW;
+          vector.__head_roll = (rightEyeOuter.y - leftEyeOuter.y) / faceW;
           vector.__head_z = (nose.z || 0) / faceH;
+
+          // 입 벌림/입 너비
+          const upperLip = landmarks[13];
+          const lowerLip = landmarks[14];
+          const mouthLeft = landmarks[61];
+          const mouthRight = landmarks[291];
+          if (upperLip && lowerLip && mouthLeft && mouthRight) {
+            vector.__mouth_open_lm = Math.abs(lowerLip.y - upperLip.y) / faceH;
+            vector.__mouth_width_lm = Math.abs(mouthRight.x - mouthLeft.x) / faceW;
+          }
+
+          // 눈 열림 정도. 값이 작아지면 눈을 감은 것.
+          const lTop = landmarks[159];
+          const lBottom = landmarks[145];
+          const rTop = landmarks[386];
+          const rBottom = landmarks[374];
+          if (lTop && lBottom && rTop && rBottom) {
+            vector.__left_eye_open_lm = Math.abs(lBottom.y - lTop.y) / faceH;
+            vector.__right_eye_open_lm = Math.abs(rBottom.y - rTop.y) / faceH;
+          }
+
+          // 눈썹 움직임
+          const leftBrow = landmarks[105];
+          const rightBrow = landmarks[334];
+          if (leftBrow && rightBrow) {
+            vector.__left_brow_raise_lm = Math.abs(leftEyeOuter.y - leftBrow.y) / faceH;
+            vector.__right_brow_raise_lm = Math.abs(rightEyeOuter.y - rightBrow.y) / faceH;
+          }
         }
       }
 
+      // pose matrix는 저장은 하지만 Python 실행 쪽에서는 기본 매칭에 거의 쓰지 않음
       const matrix = result.facialTransformationMatrixes?.[0];
       const data = matrix?.data || matrix;
 
       if (data) {
         for (let i = 0; i < data.length; i++) {
-          vector[`__pose_${i}`] = data[i] * 0.15;
+          vector[`__pose_${i}`] = data[i] * 0.05;
         }
       }
 
@@ -473,12 +543,6 @@
     }
 
     function testGesture() {
-
-      // 레이저 사용 중이면 얼굴 제스처 인식 중지
-      if (laserActive) {
-        overlayText.textContent = "레이저 사용 중";
-        return;
-      }
 
       if (!isTesting || !latestVector) return;
 
@@ -671,12 +735,15 @@
       statusText.textContent = `${currentAction.label} 설정 삭제 완료`;
     }
 
+
+
     recordBtn.onclick = recordGesture;
     deleteBtn.onclick = deleteGesture;
     closeBtn.onclick = closeModal;
     testBtn.onclick = openTest;
 
     renderMenu();
+    loadSettingsFromPython();
   </script>
 </body>
 </html>

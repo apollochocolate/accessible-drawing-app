@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맞춤형 색각보정</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup">
+    <header>
+      <div>
+        <div class="eyebrow">COLOR ACCESSIBILITY</div>
+        <h1>맞춤형 색각보정</h1>
+      </div>
+      <label class="switch" aria-label="보정 기능 켜기/끄기">
+        <input id="enabled" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </header>
+
+    <section class="profile-card">
+      <div class="label">현재 프로필</div>
+      <div id="profileName" class="profile-name">테스트 필요</div>
+      <div id="profileDetail" class="profile-detail">색 구별 테스트를 먼저 진행해 주세요.</div>
+      <button id="openTest" class="btn primary">색 구별 테스트</button>
+    </section>
+
+    <section class="settings">
+      <div class="row">
+        <div>
+          <strong>보정 강도</strong>
+          <div class="sub">테스트 결과를 기준으로 미세 조정</div>
+        </div>
+        <span id="strengthValue" class="value">0%</span>
+      </div>
+      <input id="strength" type="range" min="0" max="100" step="1" value="0">
+
+      <label class="check-row">
+        <input id="imageCorrection" type="checkbox">
+        <span>
+          <strong>이미지 색상 보정</strong>
+          <small>웹페이지의 이미지에도 색각 프로필 기반 필터 적용</small>
+        </span>
+      </label>
+
+      <label class="check-row">
+        <input id="visualCues" type="checkbox">
+        <span>
+          <strong>보정 요소 테두리 강조</strong>
+          <small>실제로 색이 바뀐 버튼·배지·박스의 테두리만 굵게 표시</small>
+        </span>
+      </label>
+    </section>
+
+    <div class="actions">
+      <button id="reanalyze" class="btn secondary">현재 페이지 다시 분석</button>
+      <button id="resetPage" class="btn ghost">현재 페이지 원본 보기</button>
+    </div>
+
+    <p class="footnote">의료적 진단용이 아닌 웹 접근성 보조용 프로토타입입니다.</p>
+  </main>
+<script src="popup.js"></script>
+</body>
+</html>

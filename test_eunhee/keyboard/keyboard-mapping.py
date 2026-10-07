@@ -4,12 +4,14 @@ from PIL import ImageFont, ImageDraw, Image
 
 WIN_W, WIN_H = 640, 480
 
-U   = 28
-H   = 42
+U   = 36
+H   = 60
 GAP = 2
 
-KB_Y  = 20
-KB_X  = 8
+KB_ROWS    = 7
+KB_TOTAL_H = KB_ROWS * (H + GAP)
+KB_Y       = (WIN_H - KB_TOTAL_H) // 2
+KB_X       = 8
 
 KEY_MAP = {}
 
@@ -209,7 +211,7 @@ cv2.createTrackbar("V_min",   TUNE_WIN, 100, 255, lambda x: None)
 cv2.createTrackbar("Blur",    TUNE_WIN, 5,   21,  lambda x: None)
 cv2.createTrackbar("Area",    TUNE_WIN, 5,   200, lambda x: None)
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH,  WIN_W)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, WIN_H)
 

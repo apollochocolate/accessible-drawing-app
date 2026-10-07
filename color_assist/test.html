@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>맞춤형 색각보정 프로필 설정</title>
+
+<link rel="stylesheet" href="test.css" />
+</head>
+
+
+<body>
+
+<div class="wrap">
+
+
+  <!-- ========================================================
+       상단
+       ======================================================== -->
+
+  <section class="hero">
+
+    <h1>맞춤형 색각보정 프로필 설정</h1>
+
+    <p>
+      자신의 색각 유형을 알고 있다면 유형을 직접 선택할 수 있습니다.
+      잘 모르겠다면 정밀 색 구별 테스트를 통해 개인 프로필을 생성할 수 있습니다.
+    </p>
+
+  </section>
+
+
+  <!-- ========================================================
+       색각 유형 직접 선택
+       ======================================================== -->
+
+  <section
+    id="profileSelect"
+    class="profileSelect">
+
+    <h2>색각 유형 선택</h2>
+
+    <p class="small">
+      본인이 알고 있는 색각 유형을 선택하거나,
+      색각 유형을 모르는 경우 정밀 테스트를 진행하세요.
+    </p>
+
+
+    <div class="profileOptions">
+
+
+      <button
+        type="button"
+        class="profileOption"
+        data-profile="protan">
+
+        <strong>적색계열</strong>
+
+        <span>
+          적색 계열의 색을<br>
+          구별하기 어려운 경우
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="profileOption"
+        data-profile="deutan">
+
+        <strong>녹색계열</strong>
+
+        <span>
+          녹색 계열의 색을<br>
+          구별하기 어려운 경우
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="profileOption"
+        data-profile="tritan">
+
+        <strong>청황계열</strong>
+
+        <span>
+          청색·황색 계열의 색을<br>
+          구별하기 어려운 경우
+        </span>
+
+      </button>
+
+
+    </div>
+
+
+    <div
+      id="selectedProfile"
+      class="selectedProfile hidden">
+    </div>
+
+
+    <button
+      type="button"
+      id="applyPresetBtn"
+      class="btn primary applyPresetBtn hidden">
+
+      선택한 유형으로 프로필 적용
+
+    </button>
+
+
+    <button
+      type="button"
+      id="testModeBtn"
+      class="testModeBtn">
+
+      <strong>
+        색각 유형을 모르겠어요 → 정밀 테스트
+      </strong>
+
+      <span class="small">
+        여러 색 구별 문제를 통해
+        적색·녹색·청황 계열의 혼동 정도를 측정합니다.
+      </span>
+
+    </button>
+
+
+    <!-- 프로필 초기화 -->
+
+    <div class="resetArea">
+
+      <button
+        type="button"
+        id="resetProfileBtn"
+        class="btn secondary">
+
+        저장된 프로필 초기화
+
+      </button>
+
+
+      <p
+        id="resetStatus"
+        class="small"
+        style="margin:8px 0 0">
+      </p>
+
+    </div>
+
+
+  </section>
+
+
+  <!-- ========================================================
+       정밀 테스트 안내
+       ======================================================== -->
+
+  <section
+    id="intro"
+    class="grid hidden">
+
+
+    <div class="panel">
+
+      <h2>정밀 테스트 구성</h2>
+
+
+      <div class="steps">
+
+
+        <div class="step">
+
+          <div class="num">
+            1
+          </div>
+
+          <div>
+
+            <b>화면 확인</b>
+
+            <div class="small">
+              밝기와 주변 조명을 일정하게 맞추고
+              회색 단계가 구분되는지 확인합니다.
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="step">
+
+          <div class="num">
+            2
+          </div>
+
+          <div>
+
+            <b>적응형 다른 색 찾기</b>
+
+            <div class="small">
+              3개는 같은 색, 1개는 다른 색입니다.
+              맞히면 색 차이가 더 작아지고,
+              틀리면 다시 커집니다.
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="step">
+
+          <div class="num">
+            3
+          </div>
+
+          <div>
+
+            <b>같음/다름 확인</b>
+
+            <div class="small">
+              두 색의 차이를 직접 판단해
+              우연히 찍어서 맞히는 영향을 줄입니다.
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="step">
+
+          <div class="num">
+            4
+          </div>
+
+          <div>
+
+            <b>개인 프로필 생성</b>
+
+            <div class="small">
+              세 색 축의 혼동 정도와
+              권장 보정 강도를 0~100으로 저장합니다.
+            </div>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="note">
+
+        이 검사는 의료적 진단용 검사가 아니라
+        <b>색각보정 시스템의 개인화 설정을 위한 프로파일링 테스트</b>입니다.
+        색각 이상 여부의 의학적 판정에는 표준화된 임상 검사가 필요합니다.
+
+      </div>
+
+    </div>
+
+
+    <div class="panel">
+
+      <h3>
+        화면 상태 먼저 확인
+      </h3>
+
+
+      <p class="small">
+
+        아래 회색 5단계가 서로 구분되도록
+        화면 밝기를 조정하세요.
+        야간 모드/블루라이트 필터는 가능하면 꺼 주세요.
+
+      </p>
+
+
+      <div class="calib">
+
+        <div
+          class="gray"
+          style="background:#2b2b2b">
+        </div>
+
+        <div
+          class="gray"
+          style="background:#555">
+        </div>
+
+        <div
+          class="gray"
+          style="background:#858585">
+        </div>
+
+        <div
+          class="gray"
+          style="background:#b9b9b9">
+        </div>
+
+        <div
+          class="gray"
+          style="background:#ebebeb">
+        </div>
+
+      </div>
+
+
+      <label class="small">
+
+        <input
+          id="calibCheck"
+          type="checkbox">
+
+        5단계가 모두 구분됩니다.
+
+      </label>
+
+
+      <div style="margin-top:16px">
+
+        <button
+          id="startBtn"
+          class="btn primary">
+
+          테스트 시작
+
+        </button>
+
+      </div>
+
+
+      <p
+        class="small"
+        style="margin-top:12px">
+
+        약 3~4분 · 본 테스트 30문항 ·
+        후반부 고난도 색차 포함
+
+      </p>
+
+    </div>
+
+
+  </section>
+
+
+  <!-- ========================================================
+       테스트 화면
+       ======================================================== -->
+
+  <section
+    id="testScreen"
+    class="hidden">
+
+
+    <div class="topbar">
+
+      <div class="progress">
+
+        <div
+          id="progressFill">
+        </div>
+
+      </div>
+
+
+      <div
+        class="phase"
+        id="phaseLabel">
+      </div>
+
+    </div>
+
+
+    <div class="task">
+
+      <h2
+        id="questionTitle">
+      </h2>
+
+
+      <p
+        id="questionDesc">
+      </p>
+
+
+      <div
+        id="oddArea"
+        class="choices">
+      </div>
+
+
+      <div
+        id="pairArea"
+        class="pairArea hidden">
+
+        <div
+          id="pairA"
+          class="pairChip">
+        </div>
+
+        <div
+          id="pairB"
+          class="pairChip">
+        </div>
+
+      </div>
+
+
+      <div
+        id="pairButtons"
+        class="pairBtns hidden">
+
+        <button
+          class="answerBtn"
+          data-pair="same">
+
+          같아 보임
+
+        </button>
+
+
+        <button
+          class="answerBtn"
+          data-pair="different">
+
+          다르게 보임
+
+        </button>
+
+      </div>
+
+
+      <div class="meta">
+
+        <span
+          id="trialMeta">
+        </span>
+
+
+        <button
+          id="unsureBtn"
+          class="skip">
+
+          잘 모르겠음
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ========================================================
+       결과 화면
+       ======================================================== -->
+
+  <section
+    id="resultScreen"
+    class="panel hidden"
+    style="margin-top:20px">
+
+
+    <h2>
+      색 구별 프로필 결과
+    </h2>
+
+
+    <p class="small">
+
+      높은 점수일수록 해당 색 축에서
+      더 큰 색 차이가 필요했다는 뜻입니다.
+
+    </p>
+
+
+    <div
+      class="resultGrid"
+      id="resultGrid">
+    </div>
+
+
+    <div
+      class="summary"
+      id="summary">
+    </div>
+
+
+    <div class="actions">
+
+      <button
+        id="saveBtn"
+        class="btn primary">
+
+        이 프로필 적용
+
+      </button>
+
+
+      <button
+        id="restartBtn"
+        class="btn secondary">
+
+        다시 테스트
+
+      </button>
+
+    </div>
+
+
+  </section>
+
+
+</div>
+
+
+<script src="test.js"></script>
+
+</body>
+</html>
